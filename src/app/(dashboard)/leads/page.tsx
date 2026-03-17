@@ -35,7 +35,8 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuTrigger
+    DropdownMenuTrigger,
+    DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu"
 import {
     Sheet,
@@ -320,6 +321,3 @@ function ActivityItem({ title, desc, time, active }: any) {
     )
 }
 
-function DropdownMenuSeparator() {
-    return <div className="h-px bg-border my-1" />
-}
