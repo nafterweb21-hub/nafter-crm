@@ -28,6 +28,23 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter
+} from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select"
+import { toast } from "sonner"
+import {
     ResponsiveContainer,
     PieChart,
     Pie,
@@ -117,6 +134,32 @@ export function ReportsView() {
 }
 
 export function TeamView() {
+    const [members, setMembers] = React.useState(teamMembers)
+    const [isAddModalOpen, setIsAddModalOpen] = React.useState(false)
+    const [newMember, setNewMember] = React.useState({
+        name: "",
+        email: "",
+        role: "Agent",
+        password: ""
+    })
+
+    const handleAddMember = (e: React.FormEvent) => {
+        e.preventDefault()
+        const member = {
+            id: members.length + 1,
+            ...newMember,
+            status: "Offline",
+            deals: 0,
+            lastActive: "Never"
+        }
+        setMembers([member, ...members])
+        setIsAddModalOpen(false)
+        setNewMember({ name: "", email: "", role: "Agent", password: "" })
+        toast.success("Team Member Added", {
+            description: `${member.name} has been added to your organization.`
+        })
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between mb-2">
@@ -124,10 +167,78 @@ export function TeamView() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input placeholder="Search team members..." className="pl-9 h-10 rounded-xl bg-muted/30 border-none" />
                 </div>
-                <Button size="sm" className="h-10 bg-primary text-white font-black px-6 rounded-xl shadow-lg shadow-primary/20 gap-2">
-                    <UserPlus className="w-4 h-4" />
-                    Add Member
-                </Button>
+                <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+                    <DialogTrigger render={
+                        <Button size="sm" className="h-10 bg-primary text-white font-black px-6 rounded-xl shadow-lg shadow-primary/20 gap-2">
+                            <UserPlus className="w-4 h-4" />
+                            Add Member
+                        </Button>
+                    } />
+                    <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-[2rem] border-border/50">
+                        <div className="bg-primary/5 p-6 border-b border-primary/10">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-black tracking-tight">Add Team Member</DialogTitle>
+                                <DialogDescription className="text-xs text-muted-foreground/80 font-medium">Create a new account for your sales organization.</DialogDescription>
+                            </DialogHeader>
+                        </div>
+                        <form onSubmit={handleAddMember}>
+                            <div className="p-6 space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Full Name</label>
+                                    <Input
+                                        required
+                                        placeholder="Enter name"
+                                        className="h-11 rounded-xl bg-muted/30 border-none font-semibold"
+                                        value={newMember.name}
+                                        onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Email Address</label>
+                                    <Input
+                                        required
+                                        type="email"
+                                        placeholder="email@example.com"
+                                        className="h-11 rounded-xl bg-muted/30 border-none font-semibold"
+                                        value={newMember.email}
+                                        onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Role</label>
+                                        <Select value={newMember.role} onValueChange={(val) => setNewMember({ ...newMember, role: val || "" })}>
+                                            <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none font-semibold">
+                                                <SelectValue placeholder="Select role" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-border/50">
+                                                <SelectItem value="Admin">Admin</SelectItem>
+                                                <SelectItem value="Manager">Manager</SelectItem>
+                                                <SelectItem value="Agent">Agent</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Password</label>
+                                        <Input
+                                            required
+                                            type="password"
+                                            placeholder="••••••••"
+                                            className="h-11 rounded-xl bg-muted/30 border-none font-semibold"
+                                            value={newMember.password}
+                                            onChange={(e) => setNewMember({ ...newMember, password: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <DialogFooter className="p-6 bg-muted/30 border-t">
+                                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-widest h-12 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95">
+                                    Create Member Account
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
             </div>
 
             <div className="border border-border/50 rounded-2xl bg-card overflow-hidden shadow-sm">
@@ -143,7 +254,7 @@ export function TeamView() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {teamMembers.map((member) => (
+                        {members.map((member) => (
                             <TableRow key={member.id} className="border-border/30 hover:bg-muted/20 transition-all group">
                                 <TableCell className="px-6 py-4">
                                     <div className="flex items-center gap-3">
