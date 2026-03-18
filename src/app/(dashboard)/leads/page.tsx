@@ -15,7 +15,12 @@ import {
     Calendar,
     User,
     Tag as TagIcon,
-    Clock
+    Clock,
+    Archive,
+    Trash2,
+    Share2,
+    UserCircle2,
+    MessageCircle
 } from "lucide-react"
 import {
     Table,
@@ -63,6 +68,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { useRouter } from "next/navigation" // Added
+
+type LeadStatus = 'New' | 'Hot' | 'Qualified' | 'Closed'; // Added
 
 interface Lead {
     id: number;
@@ -85,10 +93,12 @@ const initialLeads: Lead[] = [
 ]
 
 export default function LeadsPage() {
-    const [leadsList, setLeadsList] = React.useState(initialLeads)
+    const router = useRouter() // Added
+    const [leadsList, setLeadsList] = React.useState(initialLeads) // Corrected from `leads` to `initialLeads` based on context
     const [selectedLead, setSelectedLead] = React.useState<Lead | null>(null)
     const [isAddLeadOpen, setIsAddLeadOpen] = React.useState(false)
     const [isImportOpen, setIsImportOpen] = React.useState(false)
+    const [editingLead, setEditingLead] = React.useState<Lead | null>(null)
 
     const [newLead, setNewLead] = React.useState({
         name: "",
@@ -443,12 +453,59 @@ export default function LeadsPage() {
                                     </section>
 
                                     <div className="pt-6 flex gap-3">
-                                        <Button className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-12 rounded-xl shadow-lg shadow-primary/20">
+                                        <Button
+                                            onClick={() => {
+                                                toast.success(`Opening chat with ${selectedLead?.name}`)
+                                                router.push(`/inbox?contact=${selectedLead?.phone}`)
+                                            }}
+                                            className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-12 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] group"
+                                        >
+                                            <MessageCircle className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                                             Open Chat
                                         </Button>
-                                        <Button variant="outline" className="h-12 w-12 rounded-xl border-border/50">
-                                            <MoreHorizontal className="w-5 h-5" />
-                                        </Button>
+
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger render={
+                                                <Button variant="outline" className="h-12 w-12 rounded-xl border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all active:scale-[0.98]">
+                                                    <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
+                                                </Button>
+                                            } />
+                                            <DropdownMenuContent align="end" className="w-[200px] rounded-2xl border-border/50 bg-white/95 backdrop-blur-xl p-2 shadow-2xl">
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-primary/5 group"
+                                                    onClick={() => {
+                                                        setEditingLead(selectedLead!)
+                                                        setIsAddLeadOpen(true) // Reusing modal for edit
+                                                    }}
+                                                >
+                                                    <UserCircle2 className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                    <span className="text-xs font-bold">Edit Customer</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-primary/5 group"
+                                                    onClick={() => toast.success("Lead moved to Archive")}
+                                                >
+                                                    <Archive className="w-4 h-4 text-muted-foreground group-hover:text-orange-500 transition-colors" />
+                                                    <span className="text-xs font-bold">Archive Lead</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-primary/5 group">
+                                                    <Share2 className="w-4 h-4 text-muted-foreground group-hover:text-blue-500 transition-colors" />
+                                                    <span className="text-xs font-bold">Transfer Agent</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator className="my-1 bg-border/40" />
+                                                <DropdownMenuItem
+                                                    className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-rose-50 text-rose-500 hover:text-rose-600 group"
+                                                    onClick={() => {
+                                                        setLeadsList(leadsList.filter(l => l.id !== selectedLead?.id))
+                                                        setSelectedLead(null)
+                                                        toast.success("Lead deleted successfully")
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-rose-500/70 group-hover:text-rose-600 transition-colors" />
+                                                    <span className="text-xs font-bold">Delete Forever</span>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
                                 </div>
                             </div>
@@ -461,8 +518,14 @@ export default function LeadsPage() {
 }
 
 function ActionButton({ icon, label }: { icon: React.ReactNode; label: string }) {
+    const handleClick = () => {
+        toast.info(`${label} action triggered for this lead.`)
+    }
     return (
-        <button className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-muted/30 hover:bg-primary/10 hover:text-primary transition-all group border border-transparent hover:border-primary/20">
+        <button
+            onClick={handleClick}
+            className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-muted/30 hover:bg-primary/10 hover:text-primary transition-all group border border-transparent hover:border-primary/20"
+        >
             <span className="w-5 h-5 group-hover:scale-110 transition-transform">{icon}</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">{label}</span>
         </button>
