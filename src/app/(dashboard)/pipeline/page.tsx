@@ -202,6 +202,16 @@ export default function PipelinePage() {
         setIsDetailsOpen(true)
     }
 
+    const handleWhatsAppMessage = (deal: Deal) => {
+        const phoneNumber = "919876543210" // Placeholder number
+        const text = `Hi ${deal.contact}, I'm following up on the ${deal.title} deal...`
+        const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`
+        window.open(url, '_blank')
+        toast.success("WhatsApp Link Opened", {
+            description: `Starting a conversation with ${deal.contact}...`
+        })
+    }
+
     return (
         <div className="p-6 h-[calc(100vh-64px)] overflow-hidden flex flex-col gap-6">
 
@@ -568,7 +578,10 @@ export default function PipelinePage() {
 
                             {/* Actions Section */}
                             <div className="mt-auto p-8 pt-4 space-y-3 bg-background border-t border-border/40">
-                                <Button className="w-full h-12 bg-primary shadow-lg shadow-primary/20 rounded-xl font-black text-xs uppercase tracking-widest gap-2">
+                                <Button
+                                    onClick={() => handleWhatsAppMessage(selectedDeal)}
+                                    className="w-full h-12 bg-primary shadow-lg shadow-primary/20 rounded-xl font-black text-xs uppercase tracking-widest gap-2"
+                                >
                                     Message on WhatsApp
                                     <ArrowRight className="w-4 h-4" />
                                 </Button>
