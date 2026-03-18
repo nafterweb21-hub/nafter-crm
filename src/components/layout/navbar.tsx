@@ -143,7 +143,7 @@ export function Navbar() {
 
                 {/* Workspace Selector */}
                 <DropdownMenu>
-                    <DropdownMenuTrigger render={
+                    <DropdownMenuTrigger nativeButton={false} render={
                         <div className="flex items-center gap-2 mr-4 hover:bg-muted/50 p-1.5 rounded-xl cursor-pointer transition-colors group border border-transparent hover:border-border/50">
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm group-hover:scale-105 transition-transform">
                                 {workspace.icon}
@@ -396,7 +396,7 @@ export function Navbar() {
 
                     {/* Notifications */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger render={
+                        <DropdownMenuTrigger nativeButton={false} render={
                             <div className="relative group">
                                 <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full relative group-hover:bg-muted transition-colors">
                                     <Bell className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -479,7 +479,7 @@ export function Navbar() {
 
                     {/* User Profile */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger render={
+                        <DropdownMenuTrigger nativeButton={false} render={
                             <div className="relative h-9 rounded-full flex items-center gap-2 pl-1 pr-2 hover:bg-muted cursor-pointer transition-colors">
                                 <Avatar className="h-7 w-7 border">
                                     <AvatarImage src="/avatars/user.png" alt="Imran" />
