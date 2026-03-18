@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import {
     Bell,
     Search,
@@ -16,7 +17,11 @@ import {
     Megaphone,
     FileText,
     Settings,
-    Users
+    Users,
+    MessageSquare,
+    UserPlus,
+    AlertCircle,
+    Check
 } from "lucide-react"
 import {
     DropdownMenu,
@@ -65,6 +70,44 @@ export function Navbar() {
     const [open, setOpen] = React.useState(false)
     const [isAIInsightsOpen, setIsAIInsightsOpen] = React.useState(false)
     const [isAILoading, setIsAILoading] = React.useState(false)
+    const [notifications, setNotifications] = React.useState([
+        {
+            id: 1,
+            title: "New Lead Assigned",
+            description: "Sarah Smith has been assigned to you.",
+            time: "2m ago",
+            unread: true,
+            type: "lead",
+            icon: <UserPlus className="w-4 h-4" />
+        },
+        {
+            id: 2,
+            title: "WhatsApp Message",
+            description: "John Doe replied to your broadcast.",
+            time: "15m ago",
+            unread: true,
+            type: "message",
+            icon: <MessageSquare className="w-4 h-4" />
+        },
+        {
+            id: 3,
+            title: "System Update",
+            description: "The AI agent has been updated to v2.4.",
+            time: "1h ago",
+            unread: false,
+            type: "system",
+            icon: <Zap className="w-4 h-4" />
+        },
+        {
+            id: 4,
+            title: "Urgent: High Priority Lead",
+            description: "A hot lead is waiting for response.",
+            time: "2h ago",
+            unread: true,
+            type: "alert",
+            icon: <AlertCircle className="w-4 h-4" />
+        }
+    ])
     const [workspace, setWorkspace] = React.useState({
         name: "Nafter Web",
         plan: "Pro Workspace",
@@ -352,14 +395,87 @@ export function Navbar() {
                     <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
 
                     {/* Notifications */}
-                    <div className="relative">
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full relative">
-                            <Bell className="w-5 h-5 text-muted-foreground" />
-                            <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-destructive text-[10px] border-background animate-pulse">
-                                4
-                            </Badge>
-                        </Button>
-                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger render={
+                            <div className="relative group">
+                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full relative group-hover:bg-muted transition-colors">
+                                    <Bell className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    {notifications.some(n => n.unread) && (
+                                        <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-destructive text-[10px] border-2 border-background animate-pulse font-black">
+                                            {notifications.filter(n => n.unread).length}
+                                        </Badge>
+                                    )}
+                                </Button>
+                            </div>
+                        } />
+                        <DropdownMenuContent align="end" className="w-[320px] sm:w-[380px] mt-2 rounded-[1.5rem] border-border/50 bg-white/95 backdrop-blur-xl p-0 overflow-hidden shadow-2xl">
+                            <div className="p-4 bg-muted/30 border-b border-border/50 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-black text-sm uppercase tracking-tight">Notifications</h3>
+                                    <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-primary/10 text-primary border-none">
+                                        {notifications.filter(n => n.unread).length} New
+                                    </Badge>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    onClick={() => setNotifications(notifications.map(n => ({ ...n, unread: false })))}
+                                    className="text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 p-0 h-auto"
+                                >
+                                    Mark all as read
+                                </Button>
+                            </div>
+                            <CommandList className="max-h-[400px]">
+                                {notifications.length > 0 ? (
+                                    <div className="py-2">
+                                        {notifications.map((n) => (
+                                            <DropdownMenuItem
+                                                key={n.id}
+                                                className="cursor-pointer p-4 mx-2 rounded-2xl gap-4 focus:bg-primary/5 group transition-all"
+                                                onClick={() => setNotifications(notifications.map(notif => notif.id === n.id ? { ...notif, unread: false } : notif))}
+                                            >
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform",
+                                                    n.type === 'lead' ? "bg-emerald-500/10 text-emerald-600" :
+                                                        n.type === 'message' ? "bg-primary/10 text-primary" :
+                                                            n.type === 'alert' ? "bg-rose-500/10 text-rose-600" :
+                                                                "bg-blue-500/10 text-blue-600"
+                                                )}>
+                                                    {n.icon}
+                                                </div>
+                                                <div className="space-y-1 overflow-hidden">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <p className={cn("text-xs font-bold truncate", n.unread ? "text-foreground" : "text-muted-foreground")}>{n.title}</p>
+                                                        <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{n.time}</span>
+                                                    </div>
+                                                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed font-medium">
+                                                        {n.description}
+                                                    </p>
+                                                </div>
+                                                {n.unread && (
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 self-center" />
+                                                )}
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-8 text-center space-y-2">
+                                        <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mx-auto text-muted-foreground/30">
+                                            <Bell className="w-6 h-6" />
+                                        </div>
+                                        <p className="text-sm font-bold">No new notifications</p>
+                                        <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">You're all caught up!</p>
+                                    </div>
+                                )}
+                            </CommandList>
+                            <DropdownMenuSeparator className="bg-border/30" />
+                            <div className="p-3">
+                                <Button variant="outline" className="w-full h-10 rounded-xl font-bold text-[10px] uppercase tracking-widest border-border/50 hover:bg-primary/5 hover:text-primary transition-all">
+                                    View All Activity
+                                </Button>
+                            </div>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                     {/* User Profile */}
                     <DropdownMenu>
