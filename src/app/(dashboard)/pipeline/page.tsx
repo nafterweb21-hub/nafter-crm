@@ -124,6 +124,8 @@ export default function PipelinePage() {
     })
     const [selectedDeal, setSelectedDeal] = React.useState<Deal | null>(null)
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false)
+    const [isEditDealOpen, setIsEditDealOpen] = React.useState(false)
+    const [editingDeal, setEditingDeal] = React.useState<Deal | null>(null)
 
     const handleAddDeal = () => {
         if (!newDeal.title || !newDeal.contact || !newDeal.value) return
@@ -212,6 +214,22 @@ export default function PipelinePage() {
         })
     }
 
+    const handleUpdateDeal = () => {
+        if (!editingDeal) return
+
+        const newData = data.map(col => ({
+            ...col,
+            deals: col.deals.map(d => d.id === editingDeal.id ? editingDeal : d)
+        }))
+
+        setData(newData)
+        setSelectedDeal(editingDeal)
+        setIsEditDealOpen(false)
+        toast.success("Deal Updated", {
+            description: `${editingDeal.title} has been updated successfully.`
+        })
+    }
+
     return (
         <div className="p-6 h-[calc(100vh-64px)] overflow-hidden flex flex-col gap-6">
 
@@ -296,7 +314,7 @@ export default function PipelinePage() {
                                     <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Priority</label>
                                     <Select
                                         value={newDeal.priority}
-                                        onValueChange={(v) => setNewDeal({ ...newDeal, priority: v })}
+                                        onValueChange={(v) => setNewDeal({ ...newDeal, priority: v ?? "Warm" })}
                                     >
                                         <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40">
                                             <SelectValue placeholder="Select priority" />
@@ -586,7 +604,16 @@ export default function PipelinePage() {
                                     <ArrowRight className="w-4 h-4" />
                                 </Button>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Button variant="outline" className="h-11 rounded-xl font-bold text-[10px] uppercase tracking-widest">Edit Deal</Button>
+                                    <Button
+                                        variant="outline"
+                                        className="h-11 rounded-xl font-bold text-[10px] uppercase tracking-widest"
+                                        onClick={() => {
+                                            setEditingDeal(selectedDeal)
+                                            setIsEditDealOpen(true)
+                                        }}
+                                    >
+                                        Edit Deal
+                                    </Button>
                                     <Button variant="outline" className="h-11 rounded-xl font-bold text-[10px] uppercase tracking-widest text-destructive hover:bg-destructive/5 hover:text-destructive">Archive</Button>
                                 </div>
                             </div>
@@ -594,6 +621,78 @@ export default function PipelinePage() {
                     )}
                 </SheetContent>
             </Sheet>
+
+            {/* Edit Deal Modal */}
+            <Dialog open={isEditDealOpen} onOpenChange={setIsEditDealOpen}>
+                <DialogContent className="sm:max-w-[425px] rounded-3xl border-border/50 bg-white/95 backdrop-blur-xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-black tracking-tight">Edit Deal</DialogTitle>
+                        <DialogDescription className="text-sm font-medium text-muted-foreground">
+                            Update the information for this deal.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingDeal && (
+                        <div className="grid gap-4 py-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Deal Title</label>
+                                <Input
+                                    placeholder="e.g. Enterprise Setup"
+                                    value={editingDeal.title}
+                                    onChange={(e) => setEditingDeal({ ...editingDeal, title: e.target.value })}
+                                    className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Contact Name</label>
+                                    <Input
+                                        placeholder="John Doe"
+                                        value={editingDeal.contact}
+                                        onChange={(e) => setEditingDeal({ ...editingDeal, contact: e.target.value })}
+                                        className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Deal Value</label>
+                                    <div className="relative">
+                                        <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                                        <Input
+                                            placeholder="50,000"
+                                            value={editingDeal.value.replace('₹', '')}
+                                            onChange={(e) => setEditingDeal({ ...editingDeal, value: `₹${e.target.value}` })}
+                                            className="h-11 pl-8 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Priority</label>
+                                <Select
+                                    value={editingDeal.priority}
+                                    onValueChange={(v) => setEditingDeal({ ...editingDeal, priority: v ?? "Warm" })}
+                                >
+                                    <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40">
+                                        <SelectValue placeholder="Select priority" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl border-border/50">
+                                        <SelectItem value="Hot">🔥 Hot</SelectItem>
+                                        <SelectItem value="Warm">☀️ Warm</SelectItem>
+                                        <SelectItem value="Cold">❄️ Cold</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button
+                            onClick={handleUpdateDeal}
+                            className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                        >
+                            Save Changes
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
