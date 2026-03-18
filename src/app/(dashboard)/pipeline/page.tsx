@@ -8,7 +8,12 @@ import {
     Clock,
     Filter,
     LayoutGrid,
-    List
+    List,
+    User,
+    Mail,
+    Phone,
+    Calendar,
+    ArrowRight
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -39,6 +44,14 @@ import {
     Draggable,
     DropResult
 } from "@hello-pangea/dnd"
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+} from "@/components/ui/sheet"
+import { Separator } from "@/components/ui/separator"
 
 interface Deal {
     id: string;
@@ -109,6 +122,8 @@ export default function PipelinePage() {
         agent: "Imran",
         priority: "Warm"
     })
+    const [selectedDeal, setSelectedDeal] = React.useState<Deal | null>(null)
+    const [isDetailsOpen, setIsDetailsOpen] = React.useState(false)
 
     const handleAddDeal = () => {
         if (!newDeal.title || !newDeal.contact || !newDeal.value) return
@@ -180,6 +195,11 @@ export default function PipelinePage() {
             newData[destColIdx] = { ...destCol, deals: destDeals }
             setData(newData)
         }
+    }
+
+    const openDealDetails = (deal: Deal) => {
+        setSelectedDeal(deal)
+        setIsDetailsOpen(true)
     }
 
     return (
@@ -330,8 +350,9 @@ export default function PipelinePage() {
                                                                 ref={provided.innerRef}
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
+                                                                onClick={() => openDealDetails(deal)}
                                                                 className={cn(
-                                                                    "border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 bg-background/50 backdrop-blur",
+                                                                    "border-border/50 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 bg-background/50 backdrop-blur cursor-pointer",
                                                                     snapshot.isDragging && "shadow-2xl border-primary/50 rotate-2 z-50 bg-background"
                                                                 )}
                                                             >
@@ -450,6 +471,116 @@ export default function PipelinePage() {
                     </div>
                 </div>
             )}
+
+            {/* Deal Details Sheet */}
+            <Sheet open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+                <SheetContent side="right" className="sm:max-w-md p-0 overflow-y-auto no-scrollbar">
+                    {selectedDeal && (
+                        <div className="flex flex-col h-full">
+                            {/* Header Section */}
+                            <div className="bg-primary/5 p-8 pb-10 border-b border-primary/10 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                                <Badge className={cn(
+                                    "mb-4 text-[10px] font-black tracking-widest uppercase border-none px-2 h-5",
+                                    selectedDeal.priority === "Hot" ? "bg-rose-500 text-white" :
+                                        selectedDeal.priority === "Warm" ? "bg-orange-500 text-white" : "bg-blue-500 text-white"
+                                )}>
+                                    {selectedDeal.priority} Priority
+                                </Badge>
+                                <h2 className="text-2xl font-black tracking-tight mb-2">{selectedDeal.title}</h2>
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
+                                        <AvatarImage src={`https://avatar.vercel.sh/${selectedDeal.contact}.png`} />
+                                        <AvatarFallback>{selectedDeal.contact[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold">{selectedDeal.contact}</span>
+                                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Potential Customer</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Content Section */}
+                            <div className="p-8 space-y-8">
+                                {/* Deal Info Grid */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-1">
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Deal Value</p>
+                                        <div className="flex items-center gap-1.5 text-primary text-lg font-black tracking-tight">
+                                            <IndianRupee className="w-4 h-4" />
+                                            {selectedDeal.value.replace('₹', '')}
+                                        </div>
+                                    </div>
+                                    <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-1">
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Added Date</p>
+                                        <div className="flex items-center gap-1.5 text-lg font-black tracking-tight">
+                                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                                            {selectedDeal.time}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Contact Information */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Contact Information</h3>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-pointer border border-transparent hover:border-border/50">
+                                            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                                                <Mail className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold">{selectedDeal.contact.toLowerCase().replace(' ', '.')}@example.com</span>
+                                                <span className="text-[9px] text-muted-foreground uppercase font-black">Email</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 transition-colors group cursor-pointer border border-transparent hover:border-border/50">
+                                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                                                <Phone className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold">+91 98765 43210</span>
+                                                <span className="text-[9px] text-muted-foreground uppercase font-black">WhatsApp</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Activity Timeline placeholder */}
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Recent Activity</h3>
+                                        <Button variant="ghost" size="xs" className="text-[9px] font-black uppercase tracking-widest text-primary">View All</Button>
+                                    </div>
+                                    <div className="space-y-6 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-border/50">
+                                        <div className="relative pl-10">
+                                            <div className="absolute left-[13px] top-1.5 w-2 h-2 rounded-full bg-primary ring-4 ring-primary/10" />
+                                            <p className="text-xs font-bold leading-tight">Deal created by {selectedDeal.agent}</p>
+                                            <p className="text-[10px] text-muted-foreground mt-1">{selectedDeal.time}</p>
+                                        </div>
+                                        <div className="relative pl-10">
+                                            <div className="absolute left-[13px] top-1.5 w-2 h-2 rounded-full bg-muted-foreground/30" />
+                                            <p className="text-xs font-bold leading-tight">Status moved to {data.find(c => c.deals.includes(selectedDeal))?.title || 'New Lead'}</p>
+                                            <p className="text-[10px] text-muted-foreground mt-1">Recently</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Actions Section */}
+                            <div className="mt-auto p-8 pt-4 space-y-3 bg-background border-t border-border/40">
+                                <Button className="w-full h-12 bg-primary shadow-lg shadow-primary/20 rounded-xl font-black text-xs uppercase tracking-widest gap-2">
+                                    Message on WhatsApp
+                                    <ArrowRight className="w-4 h-4" />
+                                </Button>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Button variant="outline" className="h-11 rounded-xl font-bold text-[10px] uppercase tracking-widest">Edit Deal</Button>
+                                    <Button variant="outline" className="h-11 rounded-xl font-bold text-[10px] uppercase tracking-widest text-destructive hover:bg-destructive/5 hover:text-destructive">Archive</Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }
