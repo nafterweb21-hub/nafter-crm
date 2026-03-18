@@ -45,6 +45,11 @@ import { toast } from "sonner"
 
 export function Navbar() {
     const [open, setOpen] = React.useState(false)
+    const [workspace, setWorkspace] = React.useState({
+        name: "Nafter Web",
+        plan: "Pro Workspace",
+        icon: "N"
+    })
     const router = useRouter()
 
     React.useEffect(() => {
@@ -68,16 +73,64 @@ export function Navbar() {
             <div className="flex items-center h-full px-6 gap-4">
 
                 {/* Workspace Selector */}
-                <div className="flex items-center gap-2 mr-4">
-                    <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
-                        N
-                    </div>
-                    <div className="hidden md:flex flex-col">
-                        <span className="text-sm font-semibold leading-tight">Nafter Web</span>
-                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest leading-none">Pro Workspace</span>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger render={
+                        <div className="flex items-center gap-2 mr-4 hover:bg-muted/50 p-1.5 rounded-xl cursor-pointer transition-colors group border border-transparent hover:border-border/50">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold shadow-sm group-hover:scale-105 transition-transform">
+                                {workspace.icon}
+                            </div>
+                            <div className="hidden md:flex flex-col">
+                                <span className="text-sm font-bold leading-tight tracking-tight">{workspace.name}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mt-0.5">{workspace.plan}</span>
+                            </div>
+                            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors ml-1" />
+                        </div>
+                    } />
+                    <DropdownMenuContent align="start" className="w-64 mt-2 rounded-2xl border-border/50 bg-white/95 backdrop-blur-xl p-2 shadow-2xl">
+                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 mb-1">Your Workspaces</DropdownMenuLabel>
+                        <DropdownMenuGroup className="space-y-1">
+                            <DropdownMenuItem
+                                className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-primary/5 group"
+                                onClick={() => {
+                                    setWorkspace({ name: "Nafter Web", plan: "Pro Workspace", icon: "N" })
+                                    toast.success("Switched to Nafter Web")
+                                }}
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs ring-2 ring-primary/20">N</div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold">Nafter Web</span>
+                                    <span className="text-[9px] text-muted-foreground font-medium">Pro Workspace · 12 Agents</span>
+                                </div>
+                                {workspace.name === "Nafter Web" && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" />}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-primary/5 group"
+                                onClick={() => {
+                                    setWorkspace({ name: "ShieldCopters", plan: "Enterprise", icon: "S" })
+                                    toast.success("Switched to ShieldCopters")
+                                }}
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 font-bold text-xs group-hover:ring-2 ring-indigo-500/20 transition-all">S</div>
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-bold">ShieldCopters</span>
+                                    <span className="text-[9px] text-muted-foreground font-medium">Enterprise · 45 Agents</span>
+                                </div>
+                                {workspace.name === "ShieldCopters" && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]" />}
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator className="my-2 bg-border/40" />
+                        <DropdownMenuGroup className="space-y-1">
+                            <DropdownMenuItem className="cursor-pointer rounded-xl p-2 gap-3 text-muted-foreground hover:text-primary transition-colors">
+                                <Plus className="w-4 h-4" />
+                                <span className="text-xs font-bold">Create New Workspace</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-pointer rounded-xl p-2 gap-3 text-muted-foreground hover:text-primary transition-colors">
+                                <Settings className="w-4 h-4" />
+                                <span className="text-xs font-bold">Workspace Settings</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Search */}
                 <div
@@ -181,8 +234,8 @@ export function Navbar() {
 
                     {/* User Profile */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <div className="relative h-9 rounded-full flex items-center gap-2 pl-1 pr-2 hover:bg-muted cursor-pointer">
+                        <DropdownMenuTrigger render={
+                            <div className="relative h-9 rounded-full flex items-center gap-2 pl-1 pr-2 hover:bg-muted cursor-pointer transition-colors">
                                 <Avatar className="h-7 w-7 border">
                                     <AvatarImage src="/avatars/user.png" alt="Imran" />
                                     <AvatarFallback className="bg-primary/10 text-primary text-[10px]">IK</AvatarFallback>
@@ -193,7 +246,7 @@ export function Navbar() {
                                 </div>
                                 <ChevronDown className="h-3 w-3 text-muted-foreground" />
                             </div>
-                        </DropdownMenuTrigger>
+                        } />
                         <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-border/50">
                             <DropdownMenuGroup>
                                 <DropdownMenuLabel className="font-normal">
