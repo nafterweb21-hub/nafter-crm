@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
     Bell,
     Search,
@@ -15,6 +16,7 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -99,29 +101,39 @@ export function Navbar() {
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-border/50">
-                            <DropdownMenuLabel className="font-normal">
-                                <div className="flex flex-col space-y-1">
-                                    <p className="text-sm font-medium leading-none">Imran Khan</p>
-                                    <p className="text-xs leading-none text-muted-foreground">imran@nafter.com</p>
-                                </div>
-                            </DropdownMenuLabel>
+                            <DropdownMenuGroup>
+                                <DropdownMenuLabel className="font-normal">
+                                    <div className="flex flex-col space-y-1">
+                                        <p className="text-sm font-medium leading-none">Imran Khan</p>
+                                        <p className="text-xs leading-none text-muted-foreground">imran@nafter.com</p>
+                                    </div>
+                                </DropdownMenuLabel>
+                            </DropdownMenuGroup>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 group">
-                                <Settings className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                <span>Account Settings</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 group">
-                                <Users className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                <span>Team Management</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 group">
-                                <CreditCard className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                <span>Billing</span>
-                            </DropdownMenuItem>
+                            <Link href="/settings">
+                                <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 group">
+                                    <Settings className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <span>Account Settings</span>
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link href="/team">
+                                <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 group">
+                                    <Users className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <span>Team Management</span>
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link href="/settings">
+                                <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 group">
+                                    <CreditCard className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <span>Billing</span>
+                                </DropdownMenuItem>
+                            </Link>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 text-destructive focus:bg-destructive/10 focus:text-destructive">
-                                Log out
-                            </DropdownMenuItem>
+                            <Link href="/auth/login" className="w-full">
+                                <DropdownMenuItem className="cursor-pointer rounded-lg mx-1 text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                    Log out
+                                </DropdownMenuItem>
+                            </Link>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
