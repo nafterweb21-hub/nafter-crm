@@ -46,6 +46,23 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface Lead {
     id: number;
@@ -58,7 +75,7 @@ interface Lead {
     date: string;
 }
 
-const leads: Lead[] = [
+const initialLeads: Lead[] = [
     { id: 1, name: "John Doe", phone: "+91 9876543210", email: "john@example.com", source: "Facebook Ads", status: "Hot", agent: "Imran Khan", date: "2024-03-12" },
     { id: 2, name: "Sarah Smith", phone: "+91 9123456789", email: "sarah@gmail.com", source: "Website", status: "Qualified", agent: "Salman F.", date: "2024-03-11" },
     { id: 3, name: "Alex Ross", phone: "+91 9988776655", email: "alex@naver.com", source: "Direct Message", status: "New", agent: "Unassigned", date: "2024-03-11" },
@@ -68,7 +85,56 @@ const leads: Lead[] = [
 ]
 
 export default function LeadsPage() {
+    const [leadsList, setLeadsList] = React.useState(initialLeads)
     const [selectedLead, setSelectedLead] = React.useState<Lead | null>(null)
+    const [isAddLeadOpen, setIsAddLeadOpen] = React.useState(false)
+    const [isImportOpen, setIsImportOpen] = React.useState(false)
+
+    const [newLead, setNewLead] = React.useState({
+        name: "",
+        phone: "",
+        email: "",
+        source: "Direct",
+        status: "New",
+        agent: "Unassigned"
+    })
+
+    const handleAddLead = () => {
+        if (!newLead.name || !newLead.phone) return
+
+        const lead: Lead = {
+            id: Date.now(),
+            ...newLead,
+            date: new Date().toISOString().split('T')[0]
+        }
+
+        setLeadsList([lead, ...leadsList])
+        setIsAddLeadOpen(false)
+        setNewLead({
+            name: "",
+            phone: "",
+            email: "",
+            source: "Direct",
+            status: "New",
+            agent: "Unassigned"
+        })
+        toast.success("Lead Added Successfully", {
+            description: `${lead.name} has been added to your leads list.`
+        })
+    }
+
+    const handleImportLead = (e: React.FormEvent) => {
+        e.preventDefault()
+        toast.info("Importing leads...", {
+            description: "Wait a moment while we process the CSV file."
+        })
+        setTimeout(() => {
+            setIsImportOpen(false)
+            toast.success("Import Complete", {
+                description: "50 new leads have been imported successfully."
+            })
+        }, 2000)
+    }
 
     return (
         <div className="p-6 space-y-6">
@@ -80,14 +146,120 @@ export default function LeadsPage() {
                     <p className="text-muted-foreground text-sm">Manage and track your incoming sales opportunities.</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-9 gap-2">
-                        <Upload className="w-4 h-4" />
-                        Import
-                    </Button>
-                    <Button size="sm" className="h-9 gap-2 bg-primary shadow-lg shadow-primary/20">
-                        <Plus className="w-4 h-4" />
-                        Add Lead
-                    </Button>
+                    <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+                        <DialogTrigger render={
+                            <Button variant="outline" size="sm" className="h-9 gap-2">
+                                <Upload className="w-4 h-4" />
+                                Import
+                            </Button>
+                        } />
+                        <DialogContent className="sm:max-w-[425px] rounded-3xl border-border/50 bg-white/95 backdrop-blur-xl">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-black tracking-tight uppercase">Import Leads</DialogTitle>
+                                <DialogDescription className="text-sm font-medium text-muted-foreground">
+                                    Upload a CSV or Excel file to import multiple leads at once.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-8 text-center space-y-4">
+                                <div className="w-20 h-20 rounded-[2.5rem] bg-primary/10 flex items-center justify-center text-primary mx-auto animate-pulse">
+                                    <Upload className="w-10 h-10" />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold">Click to upload or drag and drop</p>
+                                    <p className="text-[11px] text-muted-foreground uppercase font-black tracking-widest leading-none">CSV, XLSX or VCF up to 10MB</p>
+                                </div>
+                                <Input type="file" className="hidden" id="file-upload" onChange={(e) => handleImportLead(e as any)} />
+                                <Button
+                                    variant="outline"
+                                    className="h-11 rounded-xl border-dashed border-primary/30 w-full"
+                                    onClick={() => document.getElementById('file-upload')?.click()}
+                                >
+                                    Select File
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+
+                    <Dialog open={isAddLeadOpen} onOpenChange={setIsAddLeadOpen}>
+                        <DialogTrigger render={
+                            <Button size="sm" className="h-9 gap-2 bg-primary shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
+                                <Plus className="w-4 h-4" />
+                                Add Lead
+                            </Button>
+                        } />
+                        <DialogContent className="sm:max-w-[425px] rounded-3xl border-border/50 bg-white/95 backdrop-blur-xl">
+                            <DialogHeader>
+                                <DialogTitle className="text-xl font-black tracking-tight uppercase">Create New Lead</DialogTitle>
+                                <DialogDescription className="text-sm font-medium text-muted-foreground">
+                                    Fill in the details to add a new lead manually.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Lead Name</label>
+                                    <Input
+                                        placeholder="Enter full name"
+                                        value={newLead.name}
+                                        onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+                                        className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40 font-semibold"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Phone Number</label>
+                                        <Input
+                                            placeholder="+91 00000 00000"
+                                            value={newLead.phone}
+                                            onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                                            className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40 font-semibold"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Source</label>
+                                        <Select
+                                            value={newLead.source}
+                                            onValueChange={(v) => setNewLead({ ...newLead, source: v ?? "Direct" })}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40 font-semibold">
+                                                <SelectValue placeholder="Social Media" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-border/50">
+                                                <SelectItem value="Facebook Ads">Facebook Ads</SelectItem>
+                                                <SelectItem value="Website">Website</SelectItem>
+                                                <SelectItem value="WhatsApp QR">WhatsApp QR</SelectItem>
+                                                <SelectItem value="Direct Message">Direct Message</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Status</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['New', 'Hot', 'Qualified', 'Closed'].map((s) => (
+                                            <Badge
+                                                key={s}
+                                                onClick={() => setNewLead({ ...newLead, status: s })}
+                                                className={cn(
+                                                    "cursor-pointer px-4 h-8 text-[10px] font-black tracking-widest uppercase border-none transition-all",
+                                                    newLead.status === s ? "bg-primary text-white scale-105" : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                                )}
+                                            >
+                                                {s}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button
+                                    onClick={handleAddLead}
+                                    className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                                >
+                                    Confirm & Save Lead
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 
@@ -124,7 +296,7 @@ export default function LeadsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {leads.map((lead) => (
+                            {leadsList.map((lead) => (
                                 <TableRow
                                     key={lead.id}
                                     className="hover:bg-muted/50 cursor-pointer border-border/40 transition-colors group"
