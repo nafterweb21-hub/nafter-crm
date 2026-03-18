@@ -17,7 +17,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased selection:bg-primary/20`}>
+      <body
+        className={`${inter.className} antialiased selection:bg-primary/20`}
+        suppressHydrationWarning
+      >
         {children}
         <Toaster position="top-right" />
       </body>
