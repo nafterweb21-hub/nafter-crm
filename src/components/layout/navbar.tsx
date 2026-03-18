@@ -8,9 +8,15 @@ import {
     Sparkles,
     Plus,
     ChevronDown,
+    CreditCard,
+    LayoutDashboard,
+    PieChart,
+    Users2,
+    MessageCircle,
+    Megaphone,
+    FileText,
     Settings,
-    Users,
-    CreditCard
+    Users
 } from "lucide-react"
 import {
     DropdownMenu,
@@ -22,11 +28,41 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import {
+    CommandDialog,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+    CommandSeparator,
+    CommandShortcut,
+} from "@/components/ui/command"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function Navbar() {
+    const [open, setOpen] = React.useState(false)
+    const router = useRouter()
+
+    React.useEffect(() => {
+        const down = (e: KeyboardEvent) => {
+            if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault()
+                setOpen((open) => !open)
+            }
+        }
+        document.addEventListener("keydown", down)
+        return () => document.removeEventListener("keydown", down)
+    }, [])
+
+    const runCommand = React.useCallback((command: () => void) => {
+        setOpen(false)
+        command()
+    }, [])
+
     return (
         <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 w-full">
             <div className="flex items-center h-full px-6 gap-4">
@@ -44,18 +80,77 @@ export function Navbar() {
                 </div>
 
                 {/* Search */}
-                <div className="flex-1 max-w-md relative hidden sm:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search leads, chats, or reports..."
-                        className="pl-10 h-9 bg-muted/50 border-none shadow-none focus-visible:ring-1 focus-visible:ring-primary/20 transition-all rounded-full"
-                    />
+                <div
+                    className="flex-1 max-w-md relative hidden sm:block cursor-pointer group"
+                    onClick={() => setOpen(true)}
+                >
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <div className="pl-10 h-9 bg-muted/50 hover:bg-muted/80 border-none transition-all rounded-full flex items-center text-sm text-muted-foreground font-medium w-full">
+                        Search leads, chats, or reports...
+                    </div>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                         <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
                             <span className="text-xs">⌘</span>K
                         </kbd>
                     </div>
                 </div>
+
+                <CommandDialog open={open} onOpenChange={setOpen}>
+                    <CommandInput placeholder="Type a command or search..." />
+                    <CommandList>
+                        <CommandEmpty>No results found.</CommandEmpty>
+                        <CommandGroup heading="Quick Actions">
+                            <CommandItem onSelect={() => runCommand(() => router.push("/"))}>
+                                <LayoutDashboard className="mr-2 h-4 w-4" />
+                                <span>Dashboard</span>
+                            </CommandItem>
+                            <CommandItem onSelect={() => runCommand(() => router.push("/pipeline"))}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                <span>Sales Pipeline</span>
+                            </CommandItem>
+                            <CommandItem onSelect={() => runCommand(() => router.push("/campaigns"))}>
+                                <Megaphone className="mr-2 h-4 w-4" />
+                                <span>Marketing Campaigns</span>
+                            </CommandItem>
+                            <CommandItem onSelect={() => runCommand(() => router.push("/team"))}>
+                                <Users2 className="mr-2 h-4 w-4" />
+                                <span>Team Hub</span>
+                            </CommandItem>
+                        </CommandGroup>
+                        <CommandSeparator />
+                        <CommandGroup heading="Recent Leads">
+                            <CommandItem onSelect={() => runCommand(() => toast.info("Searching John Doe..."))}>
+                                <Avatar className="h-4 w-4 mr-2">
+                                    <AvatarImage src="https://avatar.vercel.sh/john.png" />
+                                    <AvatarFallback>JD</AvatarFallback>
+                                </Avatar>
+                                <span>John Doe - Shopify Setup</span>
+                                <CommandShortcut>HOT</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem onSelect={() => runCommand(() => toast.info("Searching Sarah Smith..."))}>
+                                <Avatar className="h-4 w-4 mr-2">
+                                    <AvatarImage src="https://avatar.vercel.sh/sarah.png" />
+                                    <AvatarFallback>SS</AvatarFallback>
+                                </Avatar>
+                                <span>Sarah Smith - Website Lead</span>
+                                <CommandShortcut>WARM</CommandShortcut>
+                            </CommandItem>
+                        </CommandGroup>
+                        <CommandSeparator />
+                        <CommandGroup heading="Settings">
+                            <CommandItem onSelect={() => runCommand(() => router.push("/settings"))}>
+                                <Settings className="mr-2 h-4 w-4" />
+                                <span>Account Settings</span>
+                                <CommandShortcut>⌘S</CommandShortcut>
+                            </CommandItem>
+                            <CommandItem onSelect={() => runCommand(() => router.push("/settings"))}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                <span>Billing & Plans</span>
+                                <CommandShortcut>⌘B</CommandShortcut>
+                            </CommandItem>
+                        </CommandGroup>
+                    </CommandList>
+                </CommandDialog>
 
                 <div className="ml-auto flex items-center gap-2 sm:gap-4">
                     {/* AI Assistant Button */}
