@@ -14,7 +14,18 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 import {
     DragDropContext,
     Droppable,
@@ -80,6 +91,25 @@ const initialData: Column[] = [
 
 export default function PipelinePage() {
     const [data, setData] = React.useState(initialData)
+    const [isAddStageOpen, setIsAddStageOpen] = React.useState(false)
+    const [newStageTitle, setNewStageTitle] = React.useState("")
+
+    const handleAddStage = () => {
+        if (!newStageTitle.trim()) return
+
+        const newColumn: Column = {
+            id: `col-${data.length + 1}`,
+            title: newStageTitle,
+            deals: []
+        }
+
+        setData([...data, newColumn])
+        setNewStageTitle("")
+        setIsAddStageOpen(false)
+        toast.success("New Stage Added", {
+            description: `${newStageTitle} has been added to your pipeline.`
+        })
+    }
 
     const onDragEnd = (result: DropResult) => {
         const { source, destination } = result
@@ -243,12 +273,45 @@ export default function PipelinePage() {
                         ))}
 
                         {/* Add New Column Button */}
-                        <div className="w-80 flex flex-col h-[200px] mt-12 bg-muted/10 rounded-2xl border border-dashed items-center justify-center group hover:bg-muted/20 transition-all cursor-pointer">
-                            <div className="p-3 rounded-full bg-background/50 border shadow-sm group-hover:scale-110 transition-transform">
-                                <Plus className="w-6 h-6 text-muted-foreground/60 group-hover:text-primary" />
-                            </div>
-                            <p className="text-xs font-bold text-muted-foreground/60 transition-colors mt-4">Add Stage</p>
-                        </div>
+                        <Dialog open={isAddStageOpen} onOpenChange={setIsAddStageOpen}>
+                            <DialogTrigger asChild>
+                                <div className="w-80 flex flex-col h-[200px] mt-12 bg-muted/10 rounded-2xl border border-dashed items-center justify-center group hover:bg-muted/20 transition-all cursor-pointer">
+                                    <div className="p-3 rounded-full bg-background/50 border shadow-sm group-hover:scale-110 transition-transform">
+                                        <Plus className="w-6 h-6 text-muted-foreground/60 group-hover:text-primary" />
+                                    </div>
+                                    <p className="text-xs font-bold text-muted-foreground/60 transition-colors mt-4">Add Stage</p>
+                                </div>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px] rounded-3xl border-border/50 bg-white/95 backdrop-blur-xl">
+                                <DialogHeader>
+                                    <DialogTitle className="text-xl font-black tracking-tight">Add New Stage</DialogTitle>
+                                    <DialogDescription className="text-sm font-medium text-muted-foreground">
+                                        Give your sales stage a name. This will appear as a new column in your pipeline.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Stage Name</label>
+                                        <Input
+                                            placeholder="e.g. Negotiation"
+                                            value={newStageTitle}
+                                            onChange={(e) => setNewStageTitle(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddStage()}
+                                            className="h-12 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40 font-semibold"
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button
+                                        type="submit"
+                                        onClick={handleAddStage}
+                                        className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                                    >
+                                        Create Stage
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
             </DragDropContext>
