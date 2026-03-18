@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Zap, ArrowRight, Building2, CheckCircle2 } from "lucide-react"
+import { ArrowRight, Building2, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

@@ -15,9 +15,7 @@ import {
     Calendar,
     User,
     Tag as TagIcon,
-    Clock,
-    ChevronRight,
-    Trash2
+    Clock
 } from "lucide-react"
 import {
     Table,
@@ -43,14 +41,24 @@ import {
     SheetContent,
     SheetDescription,
     SheetHeader,
-    SheetTitle,
-    SheetTrigger
+    SheetTitle
 } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
-const leads = [
+interface Lead {
+    id: number;
+    name: string;
+    phone: string;
+    email: string;
+    source: string;
+    status: string;
+    agent: string;
+    date: string;
+}
+
+const leads: Lead[] = [
     { id: 1, name: "John Doe", phone: "+91 9876543210", email: "john@example.com", source: "Facebook Ads", status: "Hot", agent: "Imran Khan", date: "2024-03-12" },
     { id: 2, name: "Sarah Smith", phone: "+91 9123456789", email: "sarah@gmail.com", source: "Website", status: "Qualified", agent: "Salman F.", date: "2024-03-11" },
     { id: 3, name: "Alex Ross", phone: "+91 9988776655", email: "alex@naver.com", source: "Direct Message", status: "New", agent: "Unassigned", date: "2024-03-11" },
@@ -60,7 +68,7 @@ const leads = [
 ]
 
 export default function LeadsPage() {
-    const [selectedLead, setSelectedLead] = React.useState<any>(null)
+    const [selectedLead, setSelectedLead] = React.useState<Lead | null>(null)
 
     return (
         <div className="p-6 space-y-6">
@@ -280,7 +288,7 @@ export default function LeadsPage() {
     )
 }
 
-function ActionButton({ icon, label }: any) {
+function ActionButton({ icon, label }: { icon: React.ReactNode; label: string }) {
     return (
         <button className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-muted/30 hover:bg-primary/10 hover:text-primary transition-all group border border-transparent hover:border-primary/20">
             <span className="w-5 h-5 group-hover:scale-110 transition-transform">{icon}</span>
@@ -289,7 +297,7 @@ function ActionButton({ icon, label }: any) {
     )
 }
 
-function InfoRow({ icon, label, value }: any) {
+function InfoRow({ icon, label, value }: { icon: React.ReactElement<{ size?: number }>; label: string; value?: string }) {
     return (
         <div className="flex items-center gap-4">
             <div className="w-9 h-9 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground">
@@ -303,7 +311,7 @@ function InfoRow({ icon, label, value }: any) {
     )
 }
 
-function ActivityItem({ title, desc, time, active }: any) {
+function ActivityItem({ title, desc, time, active }: { title: string; desc: string; time: string; active?: boolean }) {
     return (
         <div className="relative group">
             <div className={cn(

@@ -147,7 +147,7 @@ export default function AiBotPage() {
                                             </TableCell>
                                             <TableCell className="py-4">
                                                 <div className="bg-primary/5 border border-primary/10 p-3 rounded-xl max-w-md relative group-hover:bg-primary/10 transition-colors">
-                                                    <p className="text-xs text-muted-foreground leading-relaxed italic">"{row.aiAnswer}"</p>
+                                                    <p className="text-xs text-muted-foreground leading-relaxed italic">&quot;{row.aiAnswer}&quot;</p>
                                                     <div className="absolute -right-2 -top-2 scale-0 group-hover:scale-100 transition-transform">
                                                         <Badge className="bg-primary text-white h-5 border-none shadow-lg">READY</Badge>
                                                     </div>
@@ -256,7 +256,7 @@ export default function AiBotPage() {
                                         <AlertCircle className="w-4 h-4 text-orange-500" />
                                         <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Training Alert</span>
                                     </div>
-                                    <p className="text-[11px] text-orange-700/80 leading-relaxed font-medium">Accuracy dropped by 4% in "Shopify Pricing" category. Recommend uploading updated pricing sheet.</p>
+                                    <p className="text-[11px] text-orange-700/80 leading-relaxed font-medium">Accuracy dropped by 4% in &quot;Shopify Pricing&quot; category. Recommend uploading updated pricing sheet.</p>
                                     <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black text-[10px] uppercase h-8 rounded-lg shadow-lg shadow-orange-500/20">Remediate Now</Button>
                                 </div>
                             </div>
@@ -268,7 +268,13 @@ export default function AiBotPage() {
     )
 }
 
-function StatCard({ title, value, icon, trend, color }: any) {
+function StatCard({ title, value, icon, trend, color }: {
+    title: string;
+    value: string;
+    icon: React.ReactElement<{ size?: number }>;
+    trend: string;
+    color: string;
+}) {
     return (
         <Card className="border-border/50 bg-background/50 backdrop-blur shadow-sm group hover:border-primary/30 transition-all duration-300">
             <CardContent className="p-6 flex items-center justify-between">
@@ -287,7 +293,12 @@ function StatCard({ title, value, icon, trend, color }: any) {
     )
 }
 
-function KnowledgeFile({ name, size, date, type }: any) {
+function KnowledgeFile({ name, size, date, type }: {
+    name: string;
+    size: string;
+    date: string;
+    type: 'pdf' | 'doc' | 'csv' | string;
+}) {
     return (
         <div className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-transparent hover:border-border/50 hover:bg-muted/30 transition-all group">
             <div className="flex items-center gap-3">
@@ -309,7 +320,11 @@ function KnowledgeFile({ name, size, date, type }: any) {
     )
 }
 
-function HealthRow({ label, value, color }: any) {
+function HealthRow({ label, value, color }: {
+    label: string;
+    value: string;
+    color: string;
+}) {
     return (
         <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{label}</span>

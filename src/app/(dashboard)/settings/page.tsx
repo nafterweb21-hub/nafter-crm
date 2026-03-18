@@ -6,14 +6,9 @@ import {
     CreditCard,
     Shield,
     Bell,
-    Smartphone,
     Globe,
     Key,
-    CheckCircle2,
-    ArrowRight,
     Download,
-    Plus,
-    Zap,
     ChevronRight
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,8 +21,6 @@ import {
     CardTitle
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     Table,
     TableBody,
@@ -36,7 +29,6 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
 export default function SettingsPage() {
@@ -178,7 +170,7 @@ export default function SettingsPage() {
     )
 }
 
-function UsageWidget({ label, used, total }: any) {
+function UsageWidget({ label, used, total }: { label: string; used: number; total: number }) {
     const percentage = (used / total) * 100
     return (
         <div className="space-y-2">
@@ -193,7 +185,7 @@ function UsageWidget({ label, used, total }: any) {
     )
 }
 
-function SettingRow({ label, sub, value }: any) {
+function SettingRow({ label, sub, value }: { label: string; sub: string; value: string }) {
     return (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-6 hover:bg-muted/20 transition-all gap-4">
             <div>
@@ -208,7 +200,7 @@ function SettingRow({ label, sub, value }: any) {
     )
 }
 
-function InvoiceRow({ id, status, amount, date }: any) {
+function InvoiceRow({ id, status, amount, date }: { id: string; status: string; amount: string; date: string }) {
     return (
         <TableRow className="border-border/30 hover:bg-muted/10 transition-colors">
             <TableCell className="px-6 font-mono text-[11px] font-bold text-muted-foreground">{id}</TableCell>

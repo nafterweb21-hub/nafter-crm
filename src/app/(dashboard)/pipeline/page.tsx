@@ -6,12 +6,9 @@ import {
     MoreVertical,
     IndianRupee,
     Clock,
-    Calendar,
     Filter,
-    Search,
     LayoutGrid,
-    List,
-    ChevronRight
+    List
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -87,7 +84,7 @@ export default function PipelinePage() {
             {/* Kanban Board */}
             <div className="flex-1 overflow-x-auto overflow-y-hidden pb-4 no-scrollbar">
                 <div className="flex h-full gap-4 min-w-max">
-                    {initialData.map((column, idx) => (
+                    {initialData.map((column) => (
                         <div key={column.title} className="w-80 flex flex-col h-full group">
                             {/* Column Header */}
                             <div className="flex items-center justify-between mb-4 px-2 shrink-0">

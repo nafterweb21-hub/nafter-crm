@@ -81,7 +81,7 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Main Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Welcome back, Imran. Here's what's happening today.</p>
+          <p className="text-muted-foreground mt-1 text-sm">Welcome back, Imran. Here&apos;s what&apos;s happening today.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9 px-3 border-border/50 bg-background/50 hover:bg-muted transition-colors">
@@ -304,7 +304,13 @@ export default function Dashboard() {
   )
 }
 
-function KpiCard({ title, value, icon, trend, trendUp }: any) {
+function KpiCard({ title, value, icon, trend, trendUp }: {
+  title: string;
+  value: string;
+  icon: React.ReactNode;
+  trend: string;
+  trendUp: boolean;
+}) {
   return (
     <Card className="border-border/50 shadow-sm bg-background/50 backdrop-blur group hover:border-primary/30 transition-all duration-300">
       <CardContent className="p-6">

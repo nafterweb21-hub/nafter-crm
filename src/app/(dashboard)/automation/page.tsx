@@ -3,8 +3,6 @@
 import * as React from "react"
 import {
     Zap,
-    Plus,
-    Play,
     Settings2,
     Trash2,
     MessageSquare,
@@ -12,7 +10,6 @@ import {
     UserPlus,
     Split,
     CheckCircle2,
-    ChevronRight,
     MoreVertical,
     MousePointer2,
     Search
@@ -174,7 +171,7 @@ export default function AutomationPage() {
     )
 }
 
-function NodeItem({ name, icon: Icon, color }: any) {
+function NodeItem({ name, icon: Icon, color }: { name: string; icon: React.ElementType; color: string }) {
     return (
         <div className="p-3 bg-background border border-border/50 rounded-xl flex items-center gap-3 cursor-grab active:cursor-grabbing hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all group">
             <div className={cn("p-2 rounded-lg shrink-0", color)}>
@@ -189,7 +186,13 @@ function NodeItem({ name, icon: Icon, color }: any) {
     )
 }
 
-function WorkflowNode({ title, type, icon, color, size = "normal" }: any) {
+function WorkflowNode({ title, type, icon, color, size = "normal" }: {
+    title: string;
+    type: string;
+    icon: React.ReactNode;
+    color: string;
+    size?: "normal" | "small";
+}) {
     return (
         <div className={cn(
             "relative rounded-2xl bg-background border-2 border-border/50 shadow-2xl p-4 flex items-center gap-4 transition-all hover:scale-105 hover:border-primary/40 group overflow-hidden",
@@ -213,7 +216,7 @@ function WorkflowNode({ title, type, icon, color, size = "normal" }: any) {
     )
 }
 
-function Connector({ vertical = true, alignment, length = 40 }: any) {
+function Connector({ vertical = true, alignment }: { vertical?: boolean; alignment?: "left" | "right" }) {
     if (!vertical) {
         return (
             <div className="h-10 relative">

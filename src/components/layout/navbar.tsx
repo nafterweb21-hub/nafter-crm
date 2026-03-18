@@ -8,8 +8,6 @@ import {
     Sparkles,
     Plus,
     ChevronDown,
-    Moon,
-    Sun,
     Settings,
     Users,
     CreditCard

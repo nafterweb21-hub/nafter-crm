@@ -54,7 +54,7 @@ export default function LoginPage() {
                 </div>
 
                 <p className="text-center text-[11px] font-medium text-muted-foreground pt-4 leading-relaxed">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link href="/auth/signup" className="text-primary font-black uppercase tracking-tighter hover:underline">Create One</Link>
                 </p>
             </CardContent>

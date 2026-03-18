@@ -4,19 +4,15 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  BarChart3,
   Bot,
-  CreditCard,
   Inbox,
   LayoutDashboard,
-  LineChart,
   Megaphone,
   Settings,
   Split,
   Users,
   Zap,
-  ChevronRight,
-  Plus
+  ChevronRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

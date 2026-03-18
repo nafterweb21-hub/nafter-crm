@@ -333,7 +333,7 @@ export default function InboxPage() {
                                     </Button>
                                 </div>
                                 <div className="p-3 bg-muted/30 rounded-xl border border-dashed text-[11px] text-muted-foreground leading-relaxed italic">
-                                    "Interested in setting up a premium clothing store. Budget mentioned ₹30k. Need ASAP delivery."
+                                    &quot;Interested in setting up a premium clothing store. Budget mentioned ₹30k. Need ASAP delivery.&quot;
                                 </div>
                             </section>
 

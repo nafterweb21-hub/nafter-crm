@@ -4,18 +4,12 @@ import * as React from "react"
 import {
     Megaphone,
     Plus,
-    Search,
-    Filter,
-    MoreHorizontal,
     Send,
     Eye,
     CheckCircle2,
     Clock,
-    Users,
-    Target,
     MessageSquare,
-    BarChart2,
-    Calendar as CalendarIcon
+    BarChart2
 } from "lucide-react"
 import {
     Table,
@@ -224,7 +218,12 @@ export default function CampaignsPage() {
     )
 }
 
-function StatCard({ title, value, icon, change }: any) {
+function StatCard({ title, value, icon, change }: {
+    title: string;
+    value: string;
+    icon: React.ReactNode;
+    change: string;
+}) {
     return (
         <Card className="border-border/50 bg-background/50 backdrop-blur shadow-sm group hover:border-primary/30 transition-all duration-300">
             <CardContent className="p-5 flex items-center gap-4">
