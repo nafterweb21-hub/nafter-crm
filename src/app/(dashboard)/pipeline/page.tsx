@@ -398,12 +398,12 @@ export default function PipelinePage() {
                             {/* Add New Column Button */}
                             <Dialog open={isAddStageOpen} onOpenChange={setIsAddStageOpen}>
                                 <DialogTrigger render={
-                                    <div className="w-80 flex flex-col h-[200px] mt-12 bg-muted/10 rounded-2xl border border-dashed items-center justify-center group hover:bg-muted/20 transition-all cursor-pointer">
+                                    <button type="button" className="w-80 flex flex-col h-[200px] mt-12 bg-muted/10 rounded-2xl border border-dashed items-center justify-center group hover:bg-muted/20 transition-all cursor-pointer outline-none">
                                         <div className="p-3 rounded-full bg-background/50 border shadow-sm group-hover:scale-110 transition-transform">
                                             <Plus className="w-6 h-6 text-muted-foreground/60 group-hover:text-primary" />
                                         </div>
                                         <p className="text-xs font-bold text-muted-foreground/60 transition-colors mt-4">Add Stage</p>
-                                    </div>
+                                    </button>
                                 } />
                                 <DialogContent className="sm:max-w-[425px] rounded-3xl border-border/50 bg-white/95 backdrop-blur-xl">
                                     <DialogHeader>
