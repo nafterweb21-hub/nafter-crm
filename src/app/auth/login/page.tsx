@@ -2,12 +2,39 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Zap, Github, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
 
 export default function LoginPage() {
+    const router = useRouter()
+    const [credentials, setCredentials] = React.useState({
+        email: "",
+        password: ""
+    })
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault()
+
+        const email = credentials.email.trim().toLowerCase()
+        const password = credentials.password.trim()
+
+        // Mock Admin Credentials
+        if (email === "imran@nafter.com" && password === "nafter123") {
+            toast.success("Welcome, Admin!", {
+                description: "Redirecting to your sales dashboard..."
+            })
+            router.push("/")
+        } else {
+            toast.error("Invalid Credentials", {
+                description: "Please check your email and password."
+            })
+        }
+    }
+
     return (
         <Card className="border-border/50 shadow-2xl bg-white/90 backdrop-blur-xl rounded-[2rem] overflow-hidden p-4">
             <CardHeader className="text-center space-y-3 pb-8">
@@ -20,19 +47,33 @@ export default function LoginPage() {
                 <CardDescription className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Sign in to your CRM dashboard</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <form className="space-y-4">
+                <form className="space-y-4" onSubmit={handleLogin}>
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Email Address</label>
-                        <Input type="email" placeholder="imran@nafter.com" className="h-12 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40 font-semibold" />
+                        <Input
+                            required
+                            type="email"
+                            placeholder="imran@nafter.com"
+                            className="h-12 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40 font-semibold"
+                            value={credentials.email}
+                            onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                        />
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between px-1">
                             <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Password</label>
                             <Link href="#" className="text-[10px] font-black text-primary uppercase tracking-tighter hover:underline">Forgot?</Link>
                         </div>
-                        <Input type="password" placeholder="••••••••" className="h-12 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40" />
+                        <Input
+                            required
+                            type="password"
+                            placeholder="••••••••"
+                            className="h-12 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
+                            value={credentials.password}
+                            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                        />
                     </div>
-                    <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                    <Button type="submit" className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
                         Sign In
                     </Button>
                 </form>
