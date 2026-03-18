@@ -42,9 +42,29 @@ import {
 } from "@/components/ui/command"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Separator } from "@/components/ui/separator"
+import {
+    LineChart,
+    TrendingUp,
+    Zap,
+    Target,
+    ArrowUpRight,
+    Search as SearchIcon,
+    Loader2
+} from "lucide-react"
 
 export function Navbar() {
     const [open, setOpen] = React.useState(false)
+    const [isAIInsightsOpen, setIsAIInsightsOpen] = React.useState(false)
+    const [isAILoading, setIsAILoading] = React.useState(false)
     const [workspace, setWorkspace] = React.useState({
         name: "Nafter Web",
         plan: "Pro Workspace",
@@ -67,6 +87,12 @@ export function Navbar() {
         setOpen(false)
         command()
     }, [])
+
+    const handleOpenAIInsights = () => {
+        setIsAIInsightsOpen(true)
+        setIsAILoading(true)
+        setTimeout(() => setIsAILoading(false), 1500)
+    }
 
     return (
         <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 w-full">
@@ -207,10 +233,113 @@ export function Navbar() {
 
                 <div className="ml-auto flex items-center gap-2 sm:gap-4">
                     {/* AI Assistant Button */}
-                    <Button variant="outline" size="sm" className="hidden lg:flex items-center gap-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 rounded-full h-9">
-                        <Sparkles className="w-4 h-4 text-primary" />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleOpenAIInsights}
+                        className="hidden lg:flex items-center gap-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 rounded-full h-9 transition-all active:scale-95 group"
+                    >
+                        <Sparkles className="w-4 h-4 text-primary group-hover:rotate-12 transition-transform" />
                         <span className="text-xs font-medium">AI Insights</span>
                     </Button>
+
+                    <Dialog open={isAIInsightsOpen} onOpenChange={setIsAIInsightsOpen}>
+                        <DialogContent className="sm:max-w-[550px] rounded-[2rem] border-border/50 bg-white/95 backdrop-blur-2xl p-0 overflow-hidden shadow-2xl">
+                            {isAILoading ? (
+                                <div className="p-20 flex flex-col items-center justify-center space-y-4">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                                        <Loader2 className="w-12 h-12 text-primary animate-spin relative" />
+                                    </div>
+                                    <div className="text-center">
+                                        <h3 className="text-lg font-black tracking-tight">Analyzing Pipeline...</h3>
+                                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest mt-1">Generating AI Insights</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col">
+                                    <div className="bg-primary/5 p-8 pb-10 border-b border-primary/10 relative">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl" />
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                                                <Sparkles className="w-5 h-5" />
+                                            </div>
+                                            <Badge variant="outline" className="h-6 rounded-full border-primary/20 bg-primary/5 text-primary text-[10px] font-black tracking-widest uppercase">AI Intelligence</Badge>
+                                        </div>
+                                        <h2 className="text-3xl font-black tracking-tighter mb-2">Morning Insights</h2>
+                                        <p className="text-sm text-muted-foreground font-medium max-w-[300px]">We've identified 3 high-impact actions to grow your revenue today.</p>
+                                    </div>
+
+                                    <div className="p-8 space-y-8">
+                                        {/* Key Metrics */}
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Closed Value</p>
+                                                <p className="text-xl font-black tracking-tight">₹1.4M</p>
+                                                <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+                                                    <TrendingUp className="w-3 h-3" /> +12%
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Efficiency</p>
+                                                <p className="text-xl font-black tracking-tight">84%</p>
+                                                <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+                                                    <ArrowUpRight className="w-3 h-3" /> +5%
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Lead Speed</p>
+                                                <p className="text-xl font-black tracking-tight">2.1h</p>
+                                                <div className="flex items-center gap-1 text-[10px] text-rose-500 font-bold">
+                                                    <Zap className="w-3 h-3" /> -12m
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <Separator className="opacity-50" />
+
+                                        {/* Recommendations */}
+                                        <div className="space-y-4">
+                                            <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Smart Recommendations</h4>
+                                            <div className="space-y-3">
+                                                <div className="group flex items-start gap-4 p-4 rounded-2xl bg-muted/30 border border-transparent hover:border-primary/20 hover:bg-white transition-all cursor-pointer">
+                                                    <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-600 shrink-0 group-hover:scale-110 transition-transform">
+                                                        <Target className="w-5 h-5" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-bold tracking-tight">High Propensity Lead: John Doe</p>
+                                                        <p className="text-xs text-muted-foreground leading-relaxed">John from <span className="text-foreground font-semibold">Shopify Pro</span> has a 92% chance of closing if messaged in the next 30 mins.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="group flex items-start gap-4 p-4 rounded-2xl bg-muted/30 border border-transparent hover:border-primary/20 hover:bg-white transition-all cursor-pointer">
+                                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600 shrink-0 group-hover:scale-110 transition-transform">
+                                                        <PieChart className="w-5 h-5" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="text-sm font-bold tracking-tight">Marketing Opportunity</p>
+                                                        <p className="text-xs text-muted-foreground leading-relaxed">Leads from <span className="text-foreground font-semibold">Facebook Ads</span> are up by 40%. Consider increasing daily spend.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-8 pt-0 flex gap-3">
+                                        <Button className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                                            Optimize Strategy
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => setIsAIInsightsOpen(false)}
+                                            className="px-6 h-12 rounded-2xl font-bold text-xs uppercase tracking-widest border-border/50"
+                                        >
+                                            Dismiss
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </DialogContent>
+                    </Dialog>
 
                     {/* New Chat Button */}
                     <Link href="/campaigns">
