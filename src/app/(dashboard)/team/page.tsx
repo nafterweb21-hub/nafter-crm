@@ -126,7 +126,7 @@ export function TeamView() {
                 </div>
                 <Button size="sm" className="h-10 bg-primary text-white font-black px-6 rounded-xl shadow-lg shadow-primary/20 gap-2">
                     <UserPlus className="w-4 h-4" />
-                    Invite Member
+                    Add Member
                 </Button>
             </div>
 
