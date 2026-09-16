@@ -45,6 +45,9 @@ next-env.d.ts
 /dev.db
 /dev.db-journal
 
+# WhatsAPI (Baileys) session credentials — sensitive, never commit
+/whatsapi-auth/
+
 # prisma agent skill installer clutter
 /.agents/
 /.windsurf/

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
-import { WhatsAPI } from "@/lib/whatsapi";
 import { MetaWhatsApp } from "@/lib/whatsapp-meta";
+import { sendViaBridge } from "@/lib/whatsapi-bridge";
 
 export async function getActiveIntegration() {
     const integrations = await db.integration.findMany({ where: { status: "connected" } });
@@ -24,9 +24,7 @@ export async function sendOutboundMessage(phone: string, name: string | undefine
     let sendResult: { success: boolean; error?: unknown } = { success: false, error: "No connected WhatsApp integration" };
 
     if (integration?.provider === "WHATSAPI") {
-        const client = new WhatsAPI(integration.baseUrl ?? undefined, integration.instanceId ?? undefined, integration.token ?? undefined);
-        const result = await client.sendMessage({ number: phone, message: text });
-        sendResult = { success: result.success, error: result.success ? undefined : result.data ?? result.error };
+        sendResult = await sendViaBridge(phone, text);
     } else if (integration?.provider === "META") {
         const client = new MetaWhatsApp(integration.accessToken ?? undefined, integration.phoneNumberId ?? undefined);
         const result = await client.sendTextMessage({ to: phone, text });

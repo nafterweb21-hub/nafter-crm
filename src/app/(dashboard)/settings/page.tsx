@@ -85,6 +85,15 @@ export default function SettingsPage() {
         setIsWhatsAppSetupOpen(true)
     }
 
+    const handleDisconnectWhatsapi = () => {
+        fetch("/api/whatsapi/disconnect", { method: "POST" })
+            .then(() => {
+                toast.success("WhatsApp disconnected")
+                loadIntegrations()
+            })
+            .catch(() => toast.error("Failed to disconnect"))
+    }
+
     return (
         <div className="p-6 space-y-8 animate-in fade-in slide-in-from-left-2 duration-500">
 
@@ -280,19 +289,39 @@ export default function SettingsPage() {
                                     <Wifi className="w-8 h-8" />
                                 </div>
                                 <div className="space-y-2 max-w-sm">
-                                    <h4 className="text-xl font-black tracking-tighter font-mono">WhatsAPI Gateway</h4>
+                                    <h4 className="text-xl font-black tracking-tighter font-mono">WhatsAPI (Self-Hosted)</h4>
                                     <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                                        Use high-speed unofficial gateways for ultra-low latency broadcasting.
+                                        Link your own WhatsApp number by scanning a QR code. No third-party account needed.
                                     </p>
                                 </div>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => openConnect("WHATSAPI")}
-                                    className="w-full border-primary text-primary hover:bg-primary/5 font-black text-xs uppercase h-12 px-8 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2"
-                                >
-                                    <LayoutGrid className="w-4 h-4" />
-                                    {whatsapiIntegration?.status === "connected" ? "Reconnect WhatsAPI" : "Link WhatsAPI"}
-                                </Button>
+                                {whatsapiIntegration?.status === "connected" ? (
+                                    <div className="w-full flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1 border-primary text-primary hover:bg-primary/5 font-black text-xs uppercase h-12 rounded-2xl"
+                                            disabled
+                                        >
+                                            <Wifi className="w-4 h-4 mr-2" />
+                                            Connected
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleDisconnectWhatsapi}
+                                            className="h-12 px-4 rounded-2xl border-rose-200 text-rose-500 hover:bg-rose-50 font-black text-xs uppercase"
+                                        >
+                                            Disconnect
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => openConnect("WHATSAPI")}
+                                        className="w-full border-primary text-primary hover:bg-primary/5 font-black text-xs uppercase h-12 px-8 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                                    >
+                                        <LayoutGrid className="w-4 h-4" />
+                                        Link WhatsApp
+                                    </Button>
+                                )}
                             </Card>
                         </div>
                     </div>
@@ -422,27 +451,137 @@ function ConnectIntegrationModal({ open, onOpenChange, provider, onConnected }: 
     provider: "WHATSAPI" | "META";
     onConnected: () => void;
 }) {
-    const [isSubmitting, setIsSubmitting] = React.useState(false)
-    const [whatsapiForm, setWhatsapiForm] = React.useState({ baseUrl: "", instanceId: "", token: "" })
-    const [metaForm, setMetaForm] = React.useState({ accessToken: "", phoneNumberId: "" })
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[480px] rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
+                {provider === "WHATSAPI"
+                    ? <WhatsApiPairingPanel open={open} onOpenChange={onOpenChange} onConnected={onConnected} />
+                    : <MetaConnectPanel onOpenChange={onOpenChange} onConnected={onConnected} />}
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+function WhatsApiPairingPanel({ open, onOpenChange, onConnected }: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onConnected: () => void;
+}) {
+    const [status, setStatus] = React.useState<"idle" | "connecting" | "qr" | "connected" | "error">("idle")
+    const [qr, setQr] = React.useState<string | null>(null)
+    const [error, setError] = React.useState<string | null>(null)
 
     React.useEffect(() => {
-        if (open) {
-            setIsSubmitting(false)
+        if (!open) return
+
+        let cancelled = false
+        let poll: ReturnType<typeof setInterval> | null = null
+
+        const applyStatus = (data: { status: string; qr: string | null; error: string | null }) => {
+            if (cancelled) return
+            setStatus(data.status as typeof status)
+            setQr(data.qr)
+            setError(data.error)
+            if (data.status === "connected") {
+                toast.success("WhatsApp connected")
+                onConnected()
+                if (poll) clearInterval(poll)
+                setTimeout(() => { if (!cancelled) onOpenChange(false) }, 1200)
+            }
         }
-    }, [open, provider])
+
+        setStatus("connecting")
+        fetch("/api/whatsapi/connect", { method: "POST" })
+            .then((res) => res.json())
+            .then(applyStatus)
+            .catch(() => { if (!cancelled) { setStatus("error"); setError("Failed to start the WhatsApp bridge") } })
+
+        poll = setInterval(() => {
+            fetch("/api/whatsapi/status")
+                .then((res) => res.json())
+                .then(applyStatus)
+                .catch(() => { })
+        }, 2000)
+
+        return () => {
+            cancelled = true
+            if (poll) clearInterval(poll)
+        }
+    }, [open, onConnected, onOpenChange])
+
+    return (
+        <div className="p-10 space-y-6 bg-white text-slate-900">
+            <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-20 h-20 rounded-[2.5rem] flex items-center justify-center bg-primary/10 text-primary">
+                    <Wifi className="w-10 h-10" />
+                </div>
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-black tracking-tighter">Link Your WhatsApp</h2>
+                    <p className="text-xs font-medium text-slate-500 max-w-[320px]">
+                        Open WhatsApp on your phone &gt; Settings &gt; Linked Devices &gt; Link a Device, then scan the code below.
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex items-center justify-center min-h-[220px]">
+                {status === "connecting" && (
+                    <div className="flex flex-col items-center gap-3 text-slate-400">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Starting WhatsApp bridge...</span>
+                    </div>
+                )}
+                {status === "qr" && qr && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={qr} alt="Scan with WhatsApp" className="w-56 h-56 rounded-2xl border border-slate-100 shadow-lg" />
+                )}
+                {status === "connected" && (
+                    <div className="flex flex-col items-center gap-3 text-emerald-600">
+                        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                            <Check className="w-8 h-8" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Connected!</span>
+                    </div>
+                )}
+                {status === "error" && (
+                    <div className="flex flex-col items-center gap-3 text-rose-500 text-center px-6">
+                        <AlertTriangle className="w-8 h-8" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{error || "Connection failed"}</span>
+                    </div>
+                )}
+            </div>
+
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
+                    This connects your own WhatsApp number via an unofficial protocol. Avoid bulk/spam sends — WhatsApp can flag or ban numbers that misuse it.
+                </p>
+            </div>
+
+            <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="w-full h-12 rounded-2xl border-slate-100 font-bold text-slate-400 uppercase text-xs hover:bg-slate-50"
+            >
+                {status === "connected" ? "Close" : "Cancel"}
+            </Button>
+        </div>
+    )
+}
+
+function MetaConnectPanel({ onOpenChange, onConnected }: {
+    onOpenChange: (open: boolean) => void;
+    onConnected: () => void;
+}) {
+    const [isSubmitting, setIsSubmitting] = React.useState(false)
+    const [metaForm, setMetaForm] = React.useState({ accessToken: "", phoneNumberId: "" })
 
     const handleConnect = async () => {
         setIsSubmitting(true)
         try {
-            const payload = provider === "WHATSAPI"
-                ? { provider, baseUrl: whatsapiForm.baseUrl || undefined, instanceId: whatsapiForm.instanceId, token: whatsapiForm.token }
-                : { provider, accessToken: metaForm.accessToken, phoneNumberId: metaForm.phoneNumberId }
-
             const res = await fetch("/api/integrations", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({ provider: "META", accessToken: metaForm.accessToken, phoneNumberId: metaForm.phoneNumberId }),
             })
             const data = await res.json()
 
@@ -452,7 +591,7 @@ function ConnectIntegrationModal({ open, onOpenChange, provider, onConnected }: 
             }
 
             if (data.verified) {
-                toast.success(`${provider === "WHATSAPI" ? "WhatsAPI Gateway" : "Meta WhatsApp"} connected successfully`)
+                toast.success("Meta WhatsApp connected successfully")
                 onConnected()
                 onOpenChange(false)
             } else {
@@ -469,116 +608,70 @@ function ConnectIntegrationModal({ open, onOpenChange, provider, onConnected }: 
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[480px] rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
-                <div className="p-10 space-y-6 bg-white text-slate-900">
-                    <div className="flex flex-col items-center text-center space-y-3">
-                        <div className={cn(
-                            "w-20 h-20 rounded-[2.5rem] flex items-center justify-center",
-                            provider === "WHATSAPI" ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600"
-                        )}>
-                            {provider === "WHATSAPI" ? <Wifi className="w-10 h-10" /> : <MessageCircle className="w-10 h-10" />}
-                        </div>
-                        <div className="space-y-1">
-                            <h2 className="text-2xl font-black tracking-tighter">
-                                {provider === "WHATSAPI" ? "Link WhatsAPI Gateway" : "Connect Meta WhatsApp"}
-                            </h2>
-                            <p className="text-xs font-medium text-slate-500 max-w-[320px]">
-                                {provider === "WHATSAPI"
-                                    ? "Enter your gateway credentials. We'll verify the connection before saving."
-                                    : "Enter your permanent access token and phone number ID from Meta Business Suite."}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-3">
-                        {provider === "WHATSAPI" ? (
-                            <>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Base URL (optional)</label>
-                                    <Input
-                                        placeholder="https://api.whatsapi.io/v1"
-                                        value={whatsapiForm.baseUrl}
-                                        onChange={(e) => setWhatsapiForm((f) => ({ ...f, baseUrl: e.target.value }))}
-                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Instance ID</label>
-                                    <Input
-                                        placeholder="e.g. inst_98213"
-                                        value={whatsapiForm.instanceId}
-                                        onChange={(e) => setWhatsapiForm((f) => ({ ...f, instanceId: e.target.value }))}
-                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Token</label>
-                                    <Input
-                                        type="password"
-                                        placeholder="Gateway API token"
-                                        value={whatsapiForm.token}
-                                        onChange={(e) => setWhatsapiForm((f) => ({ ...f, token: e.target.value }))}
-                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
-                                    />
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Permanent Access Token</label>
-                                    <Input
-                                        type="password"
-                                        placeholder="EAAG..."
-                                        value={metaForm.accessToken}
-                                        onChange={(e) => setMetaForm((f) => ({ ...f, accessToken: e.target.value }))}
-                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Phone Number ID</label>
-                                    <Input
-                                        placeholder="1284567890123"
-                                        value={metaForm.phoneNumberId}
-                                        onChange={(e) => setMetaForm((f) => ({ ...f, phoneNumberId: e.target.value }))}
-                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
-                                    />
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-100">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                        <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
-                            We&apos;ll ping the provider to verify these credentials before marking the channel as connected.
-                        </p>
-                    </div>
-
-                    <div className="pt-2 flex gap-3">
-                        <Button
-                            onClick={handleConnect}
-                            disabled={isSubmitting}
-                            className="flex-1 bg-slate-900 hover:bg-slate-800 text-white h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all disabled:opacity-60"
-                        >
-                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                            {isSubmitting ? "Verifying..." : "Verify & Connect"}
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            className="h-14 px-6 rounded-2xl border-slate-100 font-bold text-slate-400 uppercase text-xs hover:bg-slate-50"
-                        >
-                            Cancel
-                        </Button>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-1.5 opacity-40">
-                        <span className="text-[9px] font-black uppercase tracking-widest">Powered by {provider === "WHATSAPI" ? "WhatsAPI Gateway" : "Meta Business API"}</span>
-                        <ExternalLink className="w-2.5 h-2.5" />
-                    </div>
+        <div className="p-10 space-y-6 bg-white text-slate-900">
+            <div className="flex flex-col items-center text-center space-y-3">
+                <div className="w-20 h-20 rounded-[2.5rem] flex items-center justify-center bg-emerald-500/10 text-emerald-600">
+                    <MessageCircle className="w-10 h-10" />
                 </div>
-            </DialogContent>
-        </Dialog>
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-black tracking-tighter">Connect Meta WhatsApp</h2>
+                    <p className="text-xs font-medium text-slate-500 max-w-[320px]">
+                        Enter your permanent access token and phone number ID from Meta Business Suite.
+                    </p>
+                </div>
+            </div>
+
+            <div className="space-y-3">
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Permanent Access Token</label>
+                    <Input
+                        type="password"
+                        placeholder="EAAG..."
+                        value={metaForm.accessToken}
+                        onChange={(e) => setMetaForm((f) => ({ ...f, accessToken: e.target.value }))}
+                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
+                    />
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Phone Number ID</label>
+                    <Input
+                        placeholder="1284567890123"
+                        value={metaForm.phoneNumberId}
+                        onChange={(e) => setMetaForm((f) => ({ ...f, phoneNumberId: e.target.value }))}
+                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
+                    />
+                </div>
+            </div>
+
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
+                    We&apos;ll ping the provider to verify these credentials before marking the channel as connected.
+                </p>
+            </div>
+
+            <div className="pt-2 flex gap-3">
+                <Button
+                    onClick={handleConnect}
+                    disabled={isSubmitting}
+                    className="flex-1 bg-slate-900 hover:bg-slate-800 text-white h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all disabled:opacity-60"
+                >
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                    {isSubmitting ? "Verifying..." : "Verify & Connect"}
+                </Button>
+                <Button
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    className="h-14 px-6 rounded-2xl border-slate-100 font-bold text-slate-400 uppercase text-xs hover:bg-slate-50"
+                >
+                    Cancel
+                </Button>
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 opacity-40">
+                <span className="text-[9px] font-black uppercase tracking-widest">Powered by Meta Business API</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+            </div>
+        </div>
     )
 }
