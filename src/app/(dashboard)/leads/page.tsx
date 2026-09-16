@@ -99,6 +99,24 @@ export default function LeadsPage() {
     const [isAddLeadOpen, setIsAddLeadOpen] = React.useState(false)
     const [isImportOpen, setIsImportOpen] = React.useState(false)
     const [editingLead, setEditingLead] = React.useState<Lead | null>(null)
+    const [searchTerm, setSearchTerm] = React.useState("")
+
+    const getLeadScore = (lead: Lead) => {
+        let score = 40;
+        if (lead.status === 'Hot') score += 40;
+        if (lead.status === 'Qualified') score += 20;
+        if (lead.source.includes('Ads')) score += 15;
+        if (lead.source.includes('WhatsApp')) score += 10;
+        return Math.min(score, 100);
+    }
+
+    const filteredLeads = React.useMemo(() => {
+        return leadsList.filter(l =>
+            l.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            l.phone.includes(searchTerm) ||
+            l.source.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    }, [leadsList, searchTerm])
 
     const [newLead, setNewLead] = React.useState({
         name: "",
@@ -277,7 +295,12 @@ export default function LeadsPage() {
             <div className="flex flex-col sm:flex-row items-center gap-3">
                 <div className="relative flex-1 w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input placeholder="Search name, phone, or email..." className="pl-9 h-10 bg-muted/30 border-none rounded-xl" />
+                    <Input
+                        placeholder="Search name, phone, or email..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 h-10 bg-muted/30 border-none rounded-xl focus-visible:ring-1 focus-visible:ring-primary/20"
+                    />
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Button variant="outline" className="h-10 rounded-xl px-4 border-muted flex-1 sm:flex-none">
@@ -297,46 +320,47 @@ export default function LeadsPage() {
                     <Table>
                         <TableHeader className="bg-muted/30">
                             <TableRow className="hover:bg-transparent border-border/50">
-                                <TableHead className="w-[300px] h-12 px-6 text-[11px] font-bold uppercase tracking-wider">Contact</TableHead>
-                                <TableHead className="h-12 text-[11px] font-bold uppercase tracking-wider">Source</TableHead>
-                                <TableHead className="h-12 text-[11px] font-bold uppercase tracking-wider">Status</TableHead>
-                                <TableHead className="h-12 text-[11px] font-bold uppercase tracking-wider">Assigned Agent</TableHead>
-                                <TableHead className="h-12 text-[11px] font-bold uppercase tracking-wider">Created Date</TableHead>
+                                <TableHead className="w-[300px] h-12 px-6 text-[11px] font-black uppercase tracking-widest text-muted-foreground">Contact</TableHead>
+                                <TableHead className="h-12 text-[11px] font-black uppercase tracking-widest text-muted-foreground">Source</TableHead>
+                                <TableHead className="h-12 text-[11px] font-black uppercase tracking-widest text-muted-foreground">Status</TableHead>
+                                <TableHead className="h-12 text-[11px] font-black uppercase tracking-widest text-muted-foreground text-center">Lead Score</TableHead>
+                                <TableHead className="h-12 text-[11px] font-black uppercase tracking-widest text-muted-foreground">Assigned To</TableHead>
+                                <TableHead className="h-12 text-[11px] font-black uppercase tracking-widest text-muted-foreground">Created</TableHead>
                                 <TableHead className="h-12 w-[100px] text-right px-6"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {leadsList.map((lead) => (
+                            {filteredLeads.map((lead) => (
                                 <TableRow
                                     key={lead.id}
                                     className="hover:bg-muted/50 cursor-pointer border-border/40 transition-colors group"
                                     onClick={() => setSelectedLead(lead)}
                                 >
-                                    <TableCell className="py-4 px-6 space-y-1">
+                                    <TableCell className="py-4 px-6">
                                         <div className="flex items-center gap-3">
-                                            <Avatar className="h-9 w-9 border-2 border-background group-hover:border-primary/20 transition-all">
+                                            <Avatar className="h-10 w-10 border-2 border-background group-hover:border-primary/20 transition-all shadow-sm">
                                                 <AvatarImage src={`https://avatar.vercel.sh/${lead.name}.png`} />
-                                                <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">{lead.name[0]}</AvatarFallback>
+                                                <AvatarFallback className="text-xs bg-primary/10 text-primary font-black uppercase">{lead.name[0]}</AvatarFallback>
                                             </Avatar>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-sm tracking-tight">{lead.name}</span>
-                                                <span className="text-[11px] text-muted-foreground flex items-center gap-2">
-                                                    <Phone className="w-3 h-3" /> {lead.phone}
+                                                <span className="font-bold text-sm tracking-tight text-foreground/90">{lead.name}</span>
+                                                <span className="text-[10px] text-muted-foreground font-mono flex items-center gap-1">
+                                                    {lead.phone}
                                                 </span>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="py-4">
                                         <div className="flex flex-col">
-                                            <span className="text-xs font-semibold">{lead.source}</span>
-                                            <span className="text-[10px] text-muted-foreground">Organic Campaign</span>
+                                            <span className="text-xs font-bold text-foreground/80">{lead.source}</span>
+                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-tighter">Organic Channel</span>
                                         </div>
                                     </TableCell>
                                     <TableCell className="py-4">
                                         <Badge className={cn(
-                                            "text-[10px] uppercase font-black px-2 py-0.5 h-6 rounded-full border-none",
-                                            lead.status === "Hot" ? "bg-rose-500/10 text-rose-600" :
-                                                lead.status === "Qualified" ? "bg-emerald-500/10 text-emerald-600" :
+                                            "text-[10px] uppercase font-black px-2.5 py-0.5 h-6 rounded-lg border-none",
+                                            lead.status === "Hot" ? "bg-rose-500/10 text-rose-600 shadow-[0_0_10px_rgba(244,63,94,0.1)]" :
+                                                lead.status === "Qualified" ? "bg-emerald-500/10 text-emerald-600 shadow-[0_0_10px_rgba(16,185,129,0.1)]" :
                                                     lead.status === "Closed" ? "bg-indigo-500/10 text-indigo-600" :
                                                         "bg-blue-500/10 text-blue-600"
                                         )}>
@@ -344,14 +368,32 @@ export default function LeadsPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="py-4">
-                                        <div className="flex items-center gap-2">
-                                            <Avatar className="h-5 w-5 border">
-                                                <AvatarFallback className="text-[8px] bg-muted">{lead.agent[0]}</AvatarFallback>
-                                            </Avatar>
-                                            <span className="text-[11px] font-medium">{lead.agent}</span>
+                                        <div className="flex flex-col items-center gap-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-1.5 w-16 bg-muted rounded-full overflow-hidden">
+                                                    <div
+                                                        className={cn(
+                                                            "h-full rounded-full transition-all duration-1000",
+                                                            getLeadScore(lead) > 70 ? "bg-emerald-500" :
+                                                                getLeadScore(lead) > 40 ? "bg-orange-400" : "bg-blue-400"
+                                                        )}
+                                                        style={{ width: `${getLeadScore(lead)}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[10px] font-black">{getLeadScore(lead)}%</span>
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="py-4 text-xs font-medium text-muted-foreground">
+                                    <TableCell className="py-4">
+                                        <div className="flex items-center gap-2">
+                                            <Avatar className="h-5 w-5 border border-background shadow-xs">
+                                                <AvatarImage src={`https://github.com/${lead.agent === 'Imran Khan' ? 'nutlope' : 'shadcn'}.png`} />
+                                                <AvatarFallback className="text-[8px] bg-muted font-bold text-muted-foreground">{lead.agent[0]}</AvatarFallback>
+                                            </Avatar>
+                                            <span className="text-[11px] font-bold text-foreground/80">{lead.agent.split(' ')[0]}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                                         {lead.date}
                                     </TableCell>
                                     <TableCell className="py-4 px-6 text-right">
@@ -563,4 +605,3 @@ function ActivityItem({ title, desc, time, active }: { title: string; desc: stri
         </div>
     )
 }
-

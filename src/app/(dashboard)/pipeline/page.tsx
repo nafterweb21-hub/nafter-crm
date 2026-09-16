@@ -13,8 +13,29 @@ import {
     Mail,
     Phone,
     Calendar,
-    ArrowRight
+    ArrowRight,
+    Users2,
+    ChevronDown,
+    Check,
+    Search
 } from "lucide-react"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -61,6 +82,7 @@ interface Deal {
     agent: string;
     time: string;
     priority: string;
+    notes?: string;
 }
 
 interface Column {
@@ -69,12 +91,29 @@ interface Column {
     deals: Deal[];
 }
 
+const agentsList = [
+    { name: "Imran Khan", avatar: "https://github.com/nutlope.png", role: "Admin" },
+    { name: "Salman Rushdie", avatar: "https://avatar.vercel.sh/salman.png", role: "Senior Agent" },
+    { name: "Ayesha Ahmed", avatar: "https://avatar.vercel.sh/ayesha.png", role: "Junior Agent" },
+    { name: "Zaid Malik", avatar: "https://avatar.vercel.sh/zaid.png", role: "Sales Lead" },
+    { name: "Unassigned", avatar: "", role: "None" }
+];
+
 const initialData: Column[] = [
     {
         id: "col-1",
         title: "New Lead",
         deals: [
-            { id: "deal-1", title: "Shopify Pro Setup", contact: "John Doe", value: "₹25,000", agent: "Imran", time: "2h ago", priority: "Hot" },
+            {
+                id: "deal-1",
+                title: "Shopify Pro Setup",
+                contact: "John Doe",
+                value: "₹25,000",
+                agent: "Imran",
+                time: "2h ago",
+                priority: "Hot",
+                notes: "Interested in setting up a premium clothing store. Budget mentioned ₹30k. Need ASAP delivery."
+            },
             { id: "deal-2", title: "Website Redesign", contact: "Sarah Smith", value: "₹45,000", agent: "Salman", time: "5h ago", priority: "Warm" },
             { id: "deal-3", title: "E-commerce Launch", contact: "Alex Johnson", value: "₹1,20,000", agent: "Unassigned", time: "1d ago", priority: "Cold" },
         ]
@@ -126,6 +165,18 @@ export default function PipelinePage() {
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false)
     const [isEditDealOpen, setIsEditDealOpen] = React.useState(false)
     const [editingDeal, setEditingDeal] = React.useState<Deal | null>(null)
+    const [searchTerm, setSearchTerm] = React.useState("")
+
+    const filteredDeals = data.reduce((acc: (Deal & { stage: string })[], col) => {
+        const matchingDeals = col.deals
+            .filter(deal =>
+                deal.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                deal.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                deal.agent.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+            .map(deal => ({ ...deal, stage: col.title }));
+        return [...acc, ...matchingDeals];
+    }, []);
 
     const handleAddDeal = () => {
         if (!newDeal.title || !newDeal.contact || !newDeal.value) return
@@ -239,104 +290,116 @@ export default function PipelinePage() {
                     <h1 className="text-2xl font-bold tracking-tight">Sales Pipeline</h1>
                     <p className="text-muted-foreground text-sm">Visual deal tracker for your sales team.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex bg-muted p-1 rounded-lg mr-2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setViewMode('grid')}
-                            className={cn("h-7 w-7 rounded-md", viewMode === 'grid' ? "bg-background shadow-sm" : "text-muted-foreground")}
-                        >
-                            <LayoutGrid className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setViewMode('list')}
-                            className={cn("h-7 w-7 rounded-md", viewMode === 'list' ? "bg-background shadow-sm" : "text-muted-foreground")}
-                        >
-                            <List className="w-3.5 h-3.5" />
-                        </Button>
+                <div className="flex items-center gap-3">
+                    <div className="relative group hidden sm:block">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input
+                            placeholder="Search deals, contacts..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-64 h-9 pl-9 rounded-xl bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/40 transition-all"
+                        />
                     </div>
-                    <Button variant="outline" size="sm" className="h-9 gap-2">
-                        <Filter className="w-4 h-4" />
-                        Filter
-                    </Button>
 
-                    <Dialog open={isAddDealOpen} onOpenChange={setIsAddDealOpen}>
-                        <DialogTrigger render={
-                            <Button size="sm" className="h-9 gap-2 bg-primary shadow-lg shadow-primary/20">
-                                <Plus className="w-4 h-4" />
-                                Add Deal
+                    <div className="flex items-center gap-2">
+                        <div className="flex bg-muted p-1 rounded-lg mr-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setViewMode('grid')}
+                                className={cn("h-7 w-7 rounded-md", viewMode === 'grid' ? "bg-background shadow-sm" : "text-muted-foreground")}
+                            >
+                                <LayoutGrid className="w-3.5 h-3.5" />
                             </Button>
-                        } />
-                        <DialogContent className="sm:max-w-[425px] rounded-3xl border-border/50 bg-white/95 backdrop-blur-xl">
-                            <DialogHeader>
-                                <DialogTitle className="text-xl font-black tracking-tight">Add New Deal</DialogTitle>
-                                <DialogDescription className="text-sm font-medium text-muted-foreground">
-                                    Enter deal details to track it in your pipeline.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="grid gap-4 py-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Deal Title</label>
-                                    <Input
-                                        placeholder="e.g. Enterprise Setup"
-                                        value={newDeal.title}
-                                        onChange={(e) => setNewDeal({ ...newDeal, title: e.target.value })}
-                                        className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setViewMode('list')}
+                                className={cn("h-7 w-7 rounded-md", viewMode === 'list' ? "bg-background shadow-sm" : "text-muted-foreground")}
+                            >
+                                <List className="w-3.5 h-3.5" />
+                            </Button>
+                        </div>
+                        <Button variant="outline" size="sm" className="h-9 gap-2">
+                            <Filter className="w-4 h-4" />
+                            Filter
+                        </Button>
+
+                        <Dialog open={isAddDealOpen} onOpenChange={setIsAddDealOpen}>
+                            <DialogTrigger render={
+                                <Button size="sm" className="h-9 gap-2 bg-primary shadow-lg shadow-primary/20">
+                                    <Plus className="w-4 h-4" />
+                                    Add Deal
+                                </Button>
+                            } />
+                            <DialogContent className="sm:max-w-[425px] rounded-3xl border-border/50 bg-white/95 backdrop-blur-xl">
+                                <DialogHeader>
+                                    <DialogTitle className="text-xl font-black tracking-tight">Add New Deal</DialogTitle>
+                                    <DialogDescription className="text-sm font-medium text-muted-foreground">
+                                        Enter deal details to track it in your pipeline.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Contact Name</label>
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Deal Title</label>
                                         <Input
-                                            placeholder="John Doe"
-                                            value={newDeal.contact}
-                                            onChange={(e) => setNewDeal({ ...newDeal, contact: e.target.value })}
+                                            placeholder="e.g. Enterprise Setup"
+                                            value={newDeal.title}
+                                            onChange={(e) => setNewDeal({ ...newDeal, title: e.target.value })}
                                             className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Deal Value</label>
-                                        <div className="relative">
-                                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Contact Name</label>
                                             <Input
-                                                placeholder="50,000"
-                                                value={newDeal.value}
-                                                onChange={(e) => setNewDeal({ ...newDeal, value: e.target.value })}
-                                                className="h-11 pl-8 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
+                                                placeholder="John Doe"
+                                                value={newDeal.contact}
+                                                onChange={(e) => setNewDeal({ ...newDeal, contact: e.target.value })}
+                                                className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
                                             />
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Deal Value</label>
+                                            <div className="relative">
+                                                <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                                                <Input
+                                                    placeholder="50,000"
+                                                    value={newDeal.value}
+                                                    onChange={(e) => setNewDeal({ ...newDeal, value: e.target.value })}
+                                                    className="h-11 pl-8 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Priority</label>
+                                        <Select
+                                            value={newDeal.priority}
+                                            onValueChange={(v) => setNewDeal({ ...newDeal, priority: v ?? "Warm" })}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40">
+                                                <SelectValue placeholder="Select priority" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl border-border/50">
+                                                <SelectItem value="Hot">🔥 Hot</SelectItem>
+                                                <SelectItem value="Warm">☀️ Warm</SelectItem>
+                                                <SelectItem value="Cold">❄️ Cold</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">Priority</label>
-                                    <Select
-                                        value={newDeal.priority}
-                                        onValueChange={(v) => setNewDeal({ ...newDeal, priority: v ?? "Warm" })}
+                                <DialogFooter>
+                                    <Button
+                                        onClick={handleAddDeal}
+                                        className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
                                     >
-                                        <SelectTrigger className="h-11 rounded-xl bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/40">
-                                            <SelectValue placeholder="Select priority" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-xl border-border/50">
-                                            <SelectItem value="Hot">🔥 Hot</SelectItem>
-                                            <SelectItem value="Warm">☀️ Warm</SelectItem>
-                                            <SelectItem value="Cold">❄️ Cold</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <DialogFooter>
-                                <Button
-                                    onClick={handleAddDeal}
-                                    className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-wider rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
-                                >
-                                    Add to Pipeline
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                                        Add to Pipeline
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
                 </div>
             </div>
 
@@ -488,15 +551,94 @@ export default function PipelinePage() {
                     </div>
                 </DragDropContext>
             ) : (
-                <div className="flex-1 bg-muted/20 rounded-[2rem] border border-dashed flex items-center justify-center">
-                    <div className="text-center space-y-4">
-                        <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mx-auto">
-                            <List className="w-8 h-8" />
-                        </div>
-                        <h3 className="text-lg font-bold">List View Coming Soon</h3>
-                        <p className="text-sm text-muted-foreground max-w-[250px]">We are building a powerful table view for your deals. Stay tuned!</p>
-                        <Button variant="outline" onClick={() => setViewMode('grid')} className="rounded-xl">Switch to Kanban</Button>
-                    </div>
+                <div className="flex-1 bg-background rounded-[2rem] border border-border/50 overflow-hidden flex flex-col shadow-sm">
+                    <Table>
+                        <TableHeader>
+                            <TableRow className="bg-muted/30 hover:bg-muted/30 border-border/40">
+                                <TableHead className="w-[300px] text-[10px] font-black uppercase tracking-widest h-12 px-6">Deal Details</TableHead>
+                                <TableHead className="text-[10px] font-black uppercase tracking-widest h-12">Current Stage</TableHead>
+                                <TableHead className="text-[10px] font-black uppercase tracking-widest h-12">Priority</TableHead>
+                                <TableHead className="text-[10px] font-black uppercase tracking-widest h-12">Value</TableHead>
+                                <TableHead className="text-[10px] font-black uppercase tracking-widest h-12">Assigned To</TableHead>
+                                <TableHead className="text-[10px] font-black uppercase tracking-widest h-12 text-right px-6">Follow up</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredDeals.length > 0 ? (
+                                filteredDeals.map((deal) => (
+                                    <TableRow
+                                        key={deal.id}
+                                        className="cursor-pointer hover:bg-muted/30 border-border/40 group transition-colors"
+                                        onClick={() => openDealDetails(deal)}
+                                    >
+                                        <TableCell className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-9 w-9 border-2 border-background shadow-sm group-hover:scale-105 transition-transform">
+                                                    <AvatarImage src={`https://avatar.vercel.sh/${deal.contact}.png`} />
+                                                    <AvatarFallback>{deal.contact[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-bold tracking-tight group-hover:text-primary transition-colors">{deal.title}</span>
+                                                    <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{deal.contact}</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/20 bg-primary/5 text-primary rounded-lg py-0.5 h-6">
+                                                {deal.stage}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={cn(
+                                                "text-[9px] font-black uppercase tracking-widest border-none rounded-lg h-6",
+                                                deal.priority === "Hot" ? "bg-rose-500/10 text-rose-600" :
+                                                    deal.priority === "Warm" ? "bg-orange-500/10 text-orange-600" :
+                                                        "bg-blue-500/10 text-blue-600"
+                                            )}>
+                                                {deal.priority}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="font-black text-sm text-foreground/80">
+                                            {deal.value}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-6 w-6 border-background shadow-xs">
+                                                    <AvatarImage src={agentsList.find(a => a.name.toLowerCase().includes(deal.agent.toLowerCase()))?.avatar} />
+                                                    <AvatarFallback className="text-[8px] bg-primary/10 text-primary">{deal.agent[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <span className="text-xs font-bold">{agentsList.find(a => a.name.toLowerCase().includes(deal.agent.toLowerCase()))?.name.split(' ')[0] || deal.agent}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right px-6">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-emerald-600 hover:bg-emerald-500/10 rounded-full"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleWhatsAppMessage(deal);
+                                                    }}
+                                                >
+                                                    <Phone className="w-3.5 h-3.5" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-muted rounded-full">
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                                        No deals found matching your search.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </div>
             )}
 
@@ -504,7 +646,7 @@ export default function PipelinePage() {
             <Sheet open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
                 <SheetContent side="right" className="sm:max-w-md p-0 overflow-y-auto no-scrollbar">
                     {selectedDeal && (
-                        <div className="flex flex-col h-full">
+                        <div className="flex flex-col h-full min-h-screen">
                             {/* Header Section */}
                             <div className="bg-primary/5 p-8 pb-10 border-b border-primary/10 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl" />
@@ -529,7 +671,7 @@ export default function PipelinePage() {
                             </div>
 
                             {/* Content Section */}
-                            <div className="p-8 space-y-8">
+                            <div className="p-8 space-y-8 flex-1 overflow-y-auto no-scrollbar">
                                 {/* Deal Info Grid */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 rounded-2xl bg-muted/30 border border-border/50 space-y-1">
@@ -546,6 +688,67 @@ export default function PipelinePage() {
                                             {selectedDeal.time}
                                         </div>
                                     </div>
+                                </div>
+
+                                {/* Assigned Agent Section */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-2xl bg-primary/5 flex items-center justify-center text-primary/60">
+                                            <Users2 className="w-4 h-4" />
+                                        </div>
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Assigned Agent</h3>
+                                    </div>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger nativeButton={false} render={
+                                            <div className="flex items-center gap-3 p-3.5 rounded-[1.5rem] bg-white border border-border/50 hover:border-primary/20 hover:bg-muted/30 transition-all cursor-pointer group group-active:scale-[0.98]">
+                                                <Avatar className="h-9 w-9 border-2 border-background shadow-md">
+                                                    <AvatarImage src={agentsList.find(a => a.name.includes(selectedDeal.agent))?.avatar} />
+                                                    <AvatarFallback className="bg-primary/10 text-primary font-bold">{selectedDeal.agent[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col flex-1">
+                                                    <span className="text-sm font-bold tracking-tight">{agentsList.find(a => a.name.includes(selectedDeal.agent))?.name || selectedDeal.agent}</span>
+                                                    <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest leading-none mt-1">
+                                                        {agentsList.find(a => a.name.includes(selectedDeal.agent))?.role || "Agent"}
+                                                    </span>
+                                                </div>
+                                                <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                            </div>
+                                        } />
+                                        <DropdownMenuContent align="start" className="w-[240px] mt-2 rounded-2xl border-border/50 bg-white/95 backdrop-blur-xl p-2 shadow-2xl">
+                                            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 mb-1 pt-1">Select Agent</DropdownMenuLabel>
+                                            <DropdownMenuGroup className="space-y-1">
+                                                {agentsList.map((agent) => (
+                                                    <DropdownMenuItem
+                                                        key={agent.name}
+                                                        className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-primary/5 group"
+                                                        onClick={() => {
+                                                            const simpleName = agent.name.split(' ')[0]
+                                                            const updatedDeal = { ...selectedDeal, agent: simpleName }
+                                                            setSelectedDeal(updatedDeal)
+                                                            setData(prev => prev.map(col => ({
+                                                                ...col,
+                                                                deals: col.deals.map(d => d.id === selectedDeal.id ? updatedDeal : d)
+                                                            })))
+                                                            toast.success(`Deal assigned to ${agent.name}`)
+                                                        }}
+                                                    >
+                                                        <Avatar className="h-7 w-7 border shadow-sm">
+                                                            <AvatarImage src={agent.avatar} />
+                                                            <AvatarFallback className="text-[9px] font-bold">{agent.name[0]}</AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-bold">{agent.name}</span>
+                                                            <span className="text-[9px] text-muted-foreground font-medium">{agent.role}</span>
+                                                        </div>
+                                                        {selectedDeal.agent === agent.name.split(' ')[0] && (
+                                                            <Check className="w-3.5 h-3.5 ml-auto text-primary" />
+                                                        )}
+                                                    </DropdownMenuItem>
+                                                ))}
+                                            </DropdownMenuGroup>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
 
                                 {/* Contact Information */}
@@ -573,49 +776,83 @@ export default function PipelinePage() {
                                     </div>
                                 </div>
 
-                                {/* Activity Timeline placeholder */}
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-sm font-black uppercase tracking-widest text-muted-foreground">Recent Activity</h3>
-                                        <Button variant="ghost" size="xs" className="text-[9px] font-black uppercase tracking-widest text-primary">View All</Button>
+                                {/* Notes Section */}
+                                <div className="space-y-4 pb-4">
+                                    <div
+                                        className="flex justify-between items-center group cursor-pointer"
+                                        onClick={() => {
+                                            const newNote = prompt("Add a new note for this project:", selectedDeal.notes || "")
+                                            if (newNote !== null) {
+                                                const updatedDeal = { ...selectedDeal, notes: newNote }
+                                                setSelectedDeal(updatedDeal)
+                                                setData(prev => prev.map(col => ({
+                                                    ...col,
+                                                    deals: col.deals.map(d => d.id === selectedDeal.id ? updatedDeal : d)
+                                                })))
+                                                toast.success("Note updated successfully")
+                                            }
+                                        }}
+                                    >
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80 group-hover:text-primary transition-colors">Notes</h3>
+                                        <Plus className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                                     </div>
-                                    <div className="space-y-6 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-border/50">
-                                        <div className="relative pl-10">
-                                            <div className="absolute left-[13px] top-1.5 w-2 h-2 rounded-full bg-primary ring-4 ring-primary/10" />
-                                            <p className="text-xs font-bold leading-tight">Deal created by {selectedDeal.agent}</p>
-                                            <p className="text-[10px] text-muted-foreground mt-1">{selectedDeal.time}</p>
-                                        </div>
-                                        <div className="relative pl-10">
-                                            <div className="absolute left-[13px] top-1.5 w-2 h-2 rounded-full bg-muted-foreground/30" />
-                                            <p className="text-xs font-bold leading-tight">Status moved to {data.find(c => c.deals.includes(selectedDeal))?.title || 'New Lead'}</p>
-                                            <p className="text-[10px] text-muted-foreground mt-1">Recently</p>
-                                        </div>
+                                    <div className="p-6 rounded-[2rem] bg-indigo-50/40 border border-dashed border-indigo-200/50 relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full -mr-12 -mt-12 blur-2xl" />
+                                        <p className="text-[13px] leading-relaxed text-indigo-900/80 font-medium italic">
+                                            "{selectedDeal.notes || "No notes added yet. Click the plus icon to add project requirements or internal memos."}"
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Actions Section */}
-                            <div className="mt-auto p-8 pt-4 space-y-3 bg-background border-t border-border/40">
+                            <div className="mt-auto p-8 pt-4 space-y-4 bg-background border-t border-border/40 shrink-0">
                                 <Button
-                                    onClick={() => handleWhatsAppMessage(selectedDeal)}
-                                    className="w-full h-12 bg-primary shadow-lg shadow-primary/20 rounded-xl font-black text-xs uppercase tracking-widest gap-2"
+                                    onClick={() => {
+                                        setData(prev => prev.map(col => ({
+                                            ...col,
+                                            deals: col.deals.filter(d => d.id !== selectedDeal.id)
+                                        })))
+                                        toast.success("Deal marked as Closed Won! 🏆", {
+                                            description: `${selectedDeal.title} has been moved to your success ledger.`
+                                        })
+                                        setIsDetailsOpen(false)
+                                        setSelectedDeal(null)
+                                    }}
+                                    className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-200 rounded-[1.5rem] font-bold text-[15px] transition-all active:scale-[0.98]"
                                 >
-                                    Message on WhatsApp
-                                    <ArrowRight className="w-4 h-4" />
+                                    Mark as Closed
                                 </Button>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Button
-                                        variant="outline"
-                                        className="h-11 rounded-xl font-bold text-[10px] uppercase tracking-widest"
-                                        onClick={() => {
-                                            setEditingDeal(selectedDeal)
-                                            setIsEditDealOpen(true)
-                                        }}
-                                    >
-                                        Edit Deal
-                                    </Button>
-                                    <Button variant="outline" className="h-11 rounded-xl font-bold text-[10px] uppercase tracking-widest text-destructive hover:bg-destructive/5 hover:text-destructive">Archive</Button>
-                                </div>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        // Find meeting column index or object
+                                        const meetingCol = data.find(c => c.title === "Meeting")
+                                        if (meetingCol) {
+                                            setData(prev => {
+                                                // 1. Remove from all other columns
+                                                // 2. Add to Meeting column at index 0
+                                                return prev.map(col => {
+                                                    if (col.id === meetingCol.id) {
+                                                        // Ensure no duplicates
+                                                        const cleanDeals = col.deals.filter(d => d.id !== selectedDeal.id)
+                                                        return { ...col, deals: [selectedDeal, ...cleanDeals] }
+                                                    }
+                                                    return { ...col, deals: col.deals.filter(d => d.id !== selectedDeal.id) }
+                                                })
+                                            })
+                                            toast.info("Consultation Scheduled!", {
+                                                description: `Moved ${selectedDeal.title} to the Meeting stage.`
+                                            })
+                                        } else {
+                                            toast.info("Call scheduled for tomorrow at 10:00 AM")
+                                        }
+                                        setIsDetailsOpen(false)
+                                    }}
+                                    className="w-full h-14 rounded-[1.5rem] font-bold text-[15px] border-border/60 hover:bg-muted/30 transition-all active:scale-[0.98]"
+                                >
+                                    Schedule Call
+                                </Button>
                             </div>
                         </div>
                     )}

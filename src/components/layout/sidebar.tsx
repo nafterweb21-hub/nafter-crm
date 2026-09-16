@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  Bot,
+  Brain,
   Inbox,
   LayoutDashboard,
   Megaphone,
@@ -25,7 +25,7 @@ const sidebarItems = [
   { name: "Pipeline", href: "/pipeline", icon: Split },
   { name: "Campaigns", href: "/campaigns", icon: Megaphone },
   { name: "Automation", href: "/automation", icon: Zap },
-  { name: "AI Bot", href: "/ai-bot", icon: Bot },
+  { name: "AI Brain", href: "/ai-brain", icon: Brain },
   { name: "Team", href: "/team", icon: Users },
   { name: "Settings", href: "/settings", icon: Settings },
 ]

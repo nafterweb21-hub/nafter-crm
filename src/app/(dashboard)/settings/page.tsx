@@ -9,7 +9,22 @@ import {
     Globe,
     Key,
     Download,
-    ChevronRight
+    ChevronRight,
+    Brain,
+    Bot,
+    Zap,
+    MessageSquare,
+    Target,
+    Phone,
+    Server,
+    ExternalLink,
+    Check,
+    MessageCircle,
+    Plus,
+    LayoutGrid,
+    Wifi,
+    Loader2,
+    AlertTriangle
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -20,6 +35,10 @@ import {
     CardHeader,
     CardTitle
 } from "@/components/ui/card"
+import {
+    Dialog,
+    DialogContent,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import {
     Table,
@@ -30,8 +49,42 @@ import {
     TableRow
 } from "@/components/ui/table"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+
+type IntegrationStatus = {
+    provider: "WHATSAPI" | "META"
+    status: string
+    baseUrl?: string | null
+    instanceId?: string | null
+    phoneNumberId?: string | null
+    lastCheckedAt?: string | null
+    lastError?: string | null
+}
 
 export default function SettingsPage() {
+    const [isWhatsAppSetupOpen, setIsWhatsAppSetupOpen] = React.useState(false)
+    const [connectProvider, setConnectProvider] = React.useState<"WHATSAPI" | "META">("WHATSAPI")
+    const [integrations, setIntegrations] = React.useState<IntegrationStatus[]>([])
+
+    const loadIntegrations = React.useCallback(() => {
+        fetch("/api/integrations")
+            .then((res) => res.json())
+            .then((data) => setIntegrations(data.integrations ?? []))
+            .catch(() => toast.error("Failed to load integration status"))
+    }, [])
+
+    React.useEffect(() => {
+        loadIntegrations()
+    }, [loadIntegrations])
+
+    const whatsapiIntegration = integrations.find((i) => i.provider === "WHATSAPI")
+    const metaIntegration = integrations.find((i) => i.provider === "META")
+
+    const openConnect = (provider: "WHATSAPI" | "META") => {
+        setConnectProvider(provider)
+        setIsWhatsAppSetupOpen(true)
+    }
+
     return (
         <div className="p-6 space-y-8 animate-in fade-in slide-in-from-left-2 duration-500">
 
@@ -82,6 +135,13 @@ export default function SettingsPage() {
                     <button className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 text-muted-foreground font-medium text-sm transition-all group">
                         <div className="flex items-center gap-3">
                             <Key className="w-4 h-4 group-hover:text-primary" />
+                            <span>Meta Cloud API</span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100" />
+                    </button>
+                    <button className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 text-muted-foreground font-medium text-sm transition-all group">
+                        <div className="flex items-center gap-3">
+                            <Key className="w-4 h-4 group-hover:text-primary" />
                             <span>API Keys</span>
                         </div>
                         <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100" />
@@ -122,7 +182,37 @@ export default function SettingsPage() {
                                 <SettingRow label="Company Name" sub="The public name of your organization." value="Nafter Web Technologies" />
                                 <SettingRow label="Support Email" sub="Used for customer communication." value="support@nafter.com" />
                                 <SettingRow label="Timezone" sub="Affects automation and reports." value="UTC +5:30 (India Standard Time)" />
-                                <SettingRow label="Branding Color" sub="Primary accent for your CRM UI." value="Purple (#8B5CF6)" />
+                                <SettingRow label="Workspace URL" sub="Your internal CRM access point." value="crm.nafter.in/agency" />
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* AI & Automation Settings */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 px-2 mb-4">
+                            <Brain className="w-4 h-4 text-primary" />
+                            <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">AI & Automation</h3>
+                        </div>
+                        <Card className="border-border/50 bg-background/50 shadow-sm overflow-hidden">
+                            <CardContent className="p-0 divide-y">
+                                <ToggleRow
+                                    icon={<Bot className="w-4 h-4" />}
+                                    label="AI Assistant Triage"
+                                    sub="Automatically categorize and score new leads."
+                                    enabled={true}
+                                />
+                                <ToggleRow
+                                    icon={<Zap className="w-4 h-4" />}
+                                    label="Smart Auto-Replies"
+                                    sub="Suggest responses based on lead intent."
+                                    enabled={true}
+                                />
+                                <ToggleRow
+                                    icon={<Target className="w-4 h-4" />}
+                                    label="Priority Routing"
+                                    sub="Route high-score leads to senior agents immediately."
+                                    enabled={false}
+                                />
                             </CardContent>
                         </Card>
                     </div>
@@ -153,6 +243,75 @@ export default function SettingsPage() {
                         </div>
                     </div>
 
+                    {/* Integrations Section */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 px-2 mb-4">
+                            <Globe className="w-4 h-4 text-primary" />
+                            <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Connected Channels</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Card className="border-border/50 bg-background/50 shadow-sm overflow-hidden p-8 flex flex-col items-center text-center space-y-6 relative">
+                                {metaIntegration?.status === "connected" && (
+                                    <Badge className="absolute top-4 right-4 bg-emerald-500/10 text-emerald-600 border-none text-[9px] font-black uppercase">Connected</Badge>
+                                )}
+                                <div className="w-16 h-16 rounded-[2rem] bg-emerald-500/10 flex items-center justify-center text-emerald-600 shadow-xl shadow-emerald-500/5">
+                                    <MessageCircle className="w-8 h-8" />
+                                </div>
+                                <div className="space-y-2 max-w-sm">
+                                    <h4 className="text-xl font-black tracking-tighter">Official Meta API</h4>
+                                    <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                        Connect your official **WhatsApp Business API** via Meta Business Suite.
+                                    </p>
+                                </div>
+                                <Button
+                                    onClick={() => openConnect("META")}
+                                    className="w-full bg-[#25D366] hover:bg-[#20bd5c] text-white font-black text-xs uppercase h-12 px-8 rounded-2xl shadow-xl shadow-emerald-200 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    {metaIntegration?.status === "connected" ? "Reconnect Meta" : "Connect Meta Direct"}
+                                </Button>
+                            </Card>
+
+                            <Card className="border-border/50 bg-background/50 shadow-sm overflow-hidden p-8 flex flex-col items-center text-center space-y-6 border-dashed border-2 relative">
+                                {whatsapiIntegration?.status === "connected" && (
+                                    <Badge className="absolute top-4 right-4 bg-emerald-500/10 text-emerald-600 border-none text-[9px] font-black uppercase">Connected</Badge>
+                                )}
+                                <div className="w-16 h-16 rounded-[2rem] bg-primary/10 flex items-center justify-center text-primary shadow-xl shadow-primary/5">
+                                    <Wifi className="w-8 h-8" />
+                                </div>
+                                <div className="space-y-2 max-w-sm">
+                                    <h4 className="text-xl font-black tracking-tighter font-mono">WhatsAPI Gateway</h4>
+                                    <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                                        Use high-speed unofficial gateways for ultra-low latency broadcasting.
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => openConnect("WHATSAPI")}
+                                    className="w-full border-primary text-primary hover:bg-primary/5 font-black text-xs uppercase h-12 px-8 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    <LayoutGrid className="w-4 h-4" />
+                                    {whatsapiIntegration?.status === "connected" ? "Reconnect WhatsAPI" : "Link WhatsAPI"}
+                                </Button>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* Meta API Keys */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 px-2 mb-4">
+                            <Key className="w-4 h-4 text-primary" />
+                            <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Meta API Credentials</h3>
+                        </div>
+                        <Card className="border-border/50 bg-background/50 shadow-sm overflow-hidden">
+                            <CardContent className="p-0 divide-y">
+                                <SettingRow label="Permanent Access Token" sub="Set via the connect flow above." value={metaIntegration?.status === "connected" ? "••••••••" : "Not connected"} />
+                                <SettingRow label="Phone Number ID" sub="Used for sending messages." value={metaIntegration?.phoneNumberId || "Not connected"} />
+                                <SettingRow label="Verify Token" sub="For webhook handshake." value="antigravity_token_123" />
+                            </CardContent>
+                        </Card>
+                    </div>
+
                     {/* Save Changes Footer */}
                     <div className="flex justify-end pt-4">
                         <Button
@@ -166,6 +325,12 @@ export default function SettingsPage() {
                     </div>
                 </div>
             </div>
+            <ConnectIntegrationModal
+                open={isWhatsAppSetupOpen}
+                onOpenChange={setIsWhatsAppSetupOpen}
+                provider={connectProvider}
+                onConnected={loadIntegrations}
+            />
         </div>
     )
 }
@@ -217,5 +382,203 @@ function InvoiceRow({ id, status, amount, date }: { id: string; status: string; 
                 </Button>
             </TableCell>
         </TableRow>
+    )
+}
+function ToggleRow({ icon, label, sub, enabled }: { icon: React.ReactNode; label: string; sub: string; enabled: boolean }) {
+    const [isOn, setIsOn] = React.useState(enabled)
+    return (
+        <div className="flex items-center justify-between p-6 hover:bg-muted/10 transition-all gap-4">
+            <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                    {icon}
+                </div>
+                <div>
+                    <p className="text-sm font-bold tracking-tight">{label}</p>
+                    <p className="text-[11px] text-muted-foreground font-medium">{sub}</p>
+                </div>
+            </div>
+            <button
+                onClick={() => {
+                    setIsOn(!isOn)
+                    toast.success(`${label} ${!isOn ? 'Enabled' : 'Disabled'}`)
+                }}
+                className={cn(
+                    "w-12 h-6 rounded-full transition-all relative",
+                    isOn ? "bg-primary shadow-[0_0_12px_rgba(139,92,246,0.3)]" : "bg-muted"
+                )}
+            >
+                <div className={cn(
+                    "absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm",
+                    isOn ? "left-7" : "left-1"
+                )} />
+            </button>
+        </div>
+    )
+}
+
+function ConnectIntegrationModal({ open, onOpenChange, provider, onConnected }: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    provider: "WHATSAPI" | "META";
+    onConnected: () => void;
+}) {
+    const [isSubmitting, setIsSubmitting] = React.useState(false)
+    const [whatsapiForm, setWhatsapiForm] = React.useState({ baseUrl: "", instanceId: "", token: "" })
+    const [metaForm, setMetaForm] = React.useState({ accessToken: "", phoneNumberId: "" })
+
+    React.useEffect(() => {
+        if (open) {
+            setIsSubmitting(false)
+        }
+    }, [open, provider])
+
+    const handleConnect = async () => {
+        setIsSubmitting(true)
+        try {
+            const payload = provider === "WHATSAPI"
+                ? { provider, baseUrl: whatsapiForm.baseUrl || undefined, instanceId: whatsapiForm.instanceId, token: whatsapiForm.token }
+                : { provider, accessToken: metaForm.accessToken, phoneNumberId: metaForm.phoneNumberId }
+
+            const res = await fetch("/api/integrations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            })
+            const data = await res.json()
+
+            if (!res.ok) {
+                toast.error(data.error || "Failed to save integration")
+                return
+            }
+
+            if (data.verified) {
+                toast.success(`${provider === "WHATSAPI" ? "WhatsAPI Gateway" : "Meta WhatsApp"} connected successfully`)
+                onConnected()
+                onOpenChange(false)
+            } else {
+                toast.error("Saved, but connection could not be verified", {
+                    description: "Check your credentials and try again."
+                })
+                onConnected()
+            }
+        } catch {
+            toast.error("Network error while connecting")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[480px] rounded-[3rem] p-0 overflow-hidden border-none shadow-2xl">
+                <div className="p-10 space-y-6 bg-white text-slate-900">
+                    <div className="flex flex-col items-center text-center space-y-3">
+                        <div className={cn(
+                            "w-20 h-20 rounded-[2.5rem] flex items-center justify-center",
+                            provider === "WHATSAPI" ? "bg-primary/10 text-primary" : "bg-emerald-500/10 text-emerald-600"
+                        )}>
+                            {provider === "WHATSAPI" ? <Wifi className="w-10 h-10" /> : <MessageCircle className="w-10 h-10" />}
+                        </div>
+                        <div className="space-y-1">
+                            <h2 className="text-2xl font-black tracking-tighter">
+                                {provider === "WHATSAPI" ? "Link WhatsAPI Gateway" : "Connect Meta WhatsApp"}
+                            </h2>
+                            <p className="text-xs font-medium text-slate-500 max-w-[320px]">
+                                {provider === "WHATSAPI"
+                                    ? "Enter your gateway credentials. We'll verify the connection before saving."
+                                    : "Enter your permanent access token and phone number ID from Meta Business Suite."}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        {provider === "WHATSAPI" ? (
+                            <>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Base URL (optional)</label>
+                                    <Input
+                                        placeholder="https://api.whatsapi.io/v1"
+                                        value={whatsapiForm.baseUrl}
+                                        onChange={(e) => setWhatsapiForm((f) => ({ ...f, baseUrl: e.target.value }))}
+                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Instance ID</label>
+                                    <Input
+                                        placeholder="e.g. inst_98213"
+                                        value={whatsapiForm.instanceId}
+                                        onChange={(e) => setWhatsapiForm((f) => ({ ...f, instanceId: e.target.value }))}
+                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Token</label>
+                                    <Input
+                                        type="password"
+                                        placeholder="Gateway API token"
+                                        value={whatsapiForm.token}
+                                        onChange={(e) => setWhatsapiForm((f) => ({ ...f, token: e.target.value }))}
+                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Permanent Access Token</label>
+                                    <Input
+                                        type="password"
+                                        placeholder="EAAG..."
+                                        value={metaForm.accessToken}
+                                        onChange={(e) => setMetaForm((f) => ({ ...f, accessToken: e.target.value }))}
+                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Phone Number ID</label>
+                                    <Input
+                                        placeholder="1284567890123"
+                                        value={metaForm.phoneNumberId}
+                                        onChange={(e) => setMetaForm((f) => ({ ...f, phoneNumberId: e.target.value }))}
+                                        className="h-12 rounded-xl bg-slate-50 border-none text-sm"
+                                    />
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-100">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
+                            We'll ping the provider to verify these credentials before marking the channel as connected.
+                        </p>
+                    </div>
+
+                    <div className="pt-2 flex gap-3">
+                        <Button
+                            onClick={handleConnect}
+                            disabled={isSubmitting}
+                            className="flex-1 bg-slate-900 hover:bg-slate-800 text-white h-14 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all disabled:opacity-60"
+                        >
+                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            {isSubmitting ? "Verifying..." : "Verify & Connect"}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            className="h-14 px-6 rounded-2xl border-slate-100 font-bold text-slate-400 uppercase text-xs hover:bg-slate-50"
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-1.5 opacity-40">
+                        <span className="text-[9px] font-black uppercase tracking-widest">Powered by {provider === "WHATSAPI" ? "WhatsAPI Gateway" : "Meta Business API"}</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
     )
 }

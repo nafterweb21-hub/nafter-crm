@@ -10,6 +10,25 @@ function ScrollArea({
   children,
   ...props
 }: ScrollAreaPrimitive.Root.Props) {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return (
+      <div
+        className={cn("relative overflow-hidden", className)}
+        {...(props as any)}
+      >
+        <div className="size-full overflow-auto no-scrollbar">
+          {children}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -33,6 +52,14 @@ function ScrollBar({
   orientation = "vertical",
   ...props
 }: ScrollAreaPrimitive.Scrollbar.Props) {
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) return null
+
   return (
     <ScrollAreaPrimitive.Scrollbar
       data-slot="scroll-area-scrollbar"

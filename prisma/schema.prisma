@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum IntegrationProvider {
+  WHATSAPI
+  META
+}
+
+model Integration {
+  id             String              @id @default(cuid())
+  provider       IntegrationProvider @unique
+  status         String              @default("disconnected") // disconnected | connected | error
+  baseUrl        String?
+  instanceId     String?
+  token          String?
+  accessToken    String?
+  phoneNumberId  String?
+  lastCheckedAt  DateTime?
+  lastError      String?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+model Lead {
+  id            String         @id @default(cuid())
+  name          String?
+  phone         String         @unique
+  source        String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  conversations Conversation[]
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  leadId        String
+  lead          Lead      @relation(fields: [leadId], references: [id])
+  provider      IntegrationProvider @default(WHATSAPI)
+  lastMessageAt DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  messages      Message[]
+
+  @@index([leadId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  direction      String       // inbound | outbound
+  text           String
+  status         String       @default("sent") // sent | delivered | read | failed
+  providerId     String?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+}
+
+model Flow {
+  id          String   @id @default(cuid())
+  name        String
+  status      String   @default("draft") // draft | active
+  nodes       String   // JSON-encoded array of nodes
+  edges       String   // JSON-encoded array of edges
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

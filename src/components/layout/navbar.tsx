@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
+    Command,
     CommandDialog,
     CommandEmpty,
     CommandGroup,
@@ -156,8 +157,8 @@ export function Navbar() {
                         </div>
                     } />
                     <DropdownMenuContent align="start" className="w-64 mt-2 rounded-2xl border-border/50 bg-white/95 backdrop-blur-xl p-2 shadow-2xl">
-                        <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 mb-1">Your Workspaces</DropdownMenuLabel>
                         <DropdownMenuGroup className="space-y-1">
+                            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 mb-1 pt-1">Your Workspaces</DropdownMenuLabel>
                             <DropdownMenuItem
                                 className="cursor-pointer rounded-xl p-2 gap-3 focus:bg-primary/5 group"
                                 onClick={() => {
@@ -425,49 +426,51 @@ export function Navbar() {
                                     Mark all as read
                                 </Button>
                             </div>
-                            <CommandList className="max-h-[400px]">
-                                {notifications.length > 0 ? (
-                                    <div className="py-2">
-                                        {notifications.map((n) => (
-                                            <DropdownMenuItem
-                                                key={n.id}
-                                                className="cursor-pointer p-4 mx-2 rounded-2xl gap-4 focus:bg-primary/5 group transition-all"
-                                                onClick={() => setNotifications(notifications.map(notif => notif.id === n.id ? { ...notif, unread: false } : notif))}
-                                            >
-                                                <div className={cn(
-                                                    "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform",
-                                                    n.type === 'lead' ? "bg-emerald-500/10 text-emerald-600" :
-                                                        n.type === 'message' ? "bg-primary/10 text-primary" :
-                                                            n.type === 'alert' ? "bg-rose-500/10 text-rose-600" :
-                                                                "bg-blue-500/10 text-blue-600"
-                                                )}>
-                                                    {n.icon}
-                                                </div>
-                                                <div className="space-y-1 overflow-hidden">
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <p className={cn("text-xs font-bold truncate", n.unread ? "text-foreground" : "text-muted-foreground")}>{n.title}</p>
-                                                        <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{n.time}</span>
+                            <Command className="bg-transparent border-none">
+                                <CommandList className="max-h-[400px] border-none shadow-none">
+                                    {notifications.length > 0 ? (
+                                        <div className="py-2">
+                                            {notifications.map((n) => (
+                                                <DropdownMenuItem
+                                                    key={n.id}
+                                                    className="cursor-pointer p-4 mx-2 rounded-2xl gap-4 focus:bg-primary/5 group transition-all"
+                                                    onClick={() => setNotifications(notifications.map(notif => notif.id === n.id ? { ...notif, unread: false } : notif))}
+                                                >
+                                                    <div className={cn(
+                                                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform",
+                                                        n.type === 'lead' ? "bg-emerald-500/10 text-emerald-600" :
+                                                            n.type === 'message' ? "bg-primary/10 text-primary" :
+                                                                n.type === 'alert' ? "bg-rose-500/10 text-rose-600" :
+                                                                    "bg-blue-500/10 text-blue-600"
+                                                    )}>
+                                                        {n.icon}
                                                     </div>
-                                                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed font-medium">
-                                                        {n.description}
-                                                    </p>
-                                                </div>
-                                                {n.unread && (
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 self-center" />
-                                                )}
-                                            </DropdownMenuItem>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="p-8 text-center space-y-2">
-                                        <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mx-auto text-muted-foreground/30">
-                                            <Bell className="w-6 h-6" />
+                                                    <div className="space-y-1 overflow-hidden">
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <p className={cn("text-xs font-bold truncate", n.unread ? "text-foreground" : "text-muted-foreground")}>{n.title}</p>
+                                                            <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">{n.time}</span>
+                                                        </div>
+                                                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed font-medium">
+                                                            {n.description}
+                                                        </p>
+                                                    </div>
+                                                    {n.unread && (
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 self-center" />
+                                                    )}
+                                                </DropdownMenuItem>
+                                            ))}
                                         </div>
-                                        <p className="text-sm font-bold">No new notifications</p>
-                                        <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">You're all caught up!</p>
-                                    </div>
-                                )}
-                            </CommandList>
+                                    ) : (
+                                        <div className="p-8 text-center space-y-2">
+                                            <div className="w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mx-auto text-muted-foreground/30">
+                                                <Bell className="w-6 h-6" />
+                                            </div>
+                                            <p className="text-sm font-bold">No new notifications</p>
+                                            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">You're all caught up!</p>
+                                        </div>
+                                    )}
+                                </CommandList>
+                            </Command>
                             <DropdownMenuSeparator className="bg-border/30" />
                             <div className="p-3">
                                 <Button variant="outline" className="w-full h-10 rounded-xl font-bold text-[10px] uppercase tracking-widest border-border/50 hover:bg-primary/5 hover:text-primary transition-all">
