@@ -551,7 +551,7 @@ function ConnectIntegrationModal({ open, onOpenChange, provider, onConnected }: 
                     <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-100">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                         <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
-                            We'll ping the provider to verify these credentials before marking the channel as connected.
+                            We&apos;ll ping the provider to verify these credentials before marking the channel as connected.
                         </p>
                     </div>
 
